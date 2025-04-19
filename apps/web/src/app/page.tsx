@@ -110,7 +110,14 @@ export default function Home() {
           .map(kw => categories.find(c => c.eng_keyword === kw)?.kor_name ?? kw)
           .join(",");
         const params = new URLSearchParams({
-          keywords: queries,
+          // keywords: selectedFoods.join(","),
+          // eng_keyword 대신 kor_name(한글)으로 검색어 구성
+          keywords: selectedFoods
+          .map(kw => {
+        const cat = categories.find(c => c.eng_keyword === kw);
+          return cat?.kor_name ?? kw;
+          })
+          .join(","),
           lat: location.lat.toString(),
           lng: location.lng.toString(),
           radius: "1000",
