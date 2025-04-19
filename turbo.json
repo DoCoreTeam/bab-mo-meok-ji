@@ -3,8 +3,8 @@
   "tasks": {
     "build": {
       "outputs": [
-        "apps/web/.next/**",
-        "apps/web/dist/**"
+        "web/.next/**",
+        "web/dist/**"
       ]
     },
     "dev": {
