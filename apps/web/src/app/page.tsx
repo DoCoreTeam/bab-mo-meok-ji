@@ -191,7 +191,7 @@ export default function Home() {
   return (
     <Layout>
       {categories.length === 0 ? (
-        <p>카테고리 불러오는 중...</p>
+        <p className="text-center py-4">카테고리 불러오는 중...</p>
       ) : viewMode === "select" ? (
         <div className="w-full max-w-md mx-auto bg-[var(--background)] text-[var(--foreground)] p-4 rounded-lg shadow transition-colors">
           <p className="text-center text-xl font-semibold mb-2">오늘은 뭐 먹을거예요? (구글 별점 3 이상 추천)</p>
@@ -213,14 +213,14 @@ export default function Home() {
             ))}
           </div>
           <button
-            className="w-full py-3 text-base font-medium rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition"
+            className="w-full py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition transform active:scale-95 active:opacity-80"
             onClick={handleStartRecommendation}
           >
             추천 시작
           </button>
         </div>
       ) : loading ? (
-        <p className="text-center">맛집 추천 중...</p>
+        <p className="text-center py-4">맛집 추천 중...</p>
       ) : viewMode === "recommend" && selectedPlace ? (
         <div className="flex flex-col items-center space-y-4">
           <PlaceCard
@@ -229,7 +229,9 @@ export default function Home() {
             address={selectedPlace.address}
             kakaoId={selectedPlace.kakaoId}
           >
-            <div className="mt-4"><KakaoMap lat={selectedPlace.lat} lng={selectedPlace.lng} /></div>
+            <div className="mt-4">
+              <KakaoMap lat={selectedPlace.lat} lng={selectedPlace.lng} />
+            </div>
           </PlaceCard>
           <ActionButtons onAnother={handleAnotherRecommendation} onRestart={handleRestart} isFinished={false} />
         </div>
@@ -241,11 +243,13 @@ export default function Home() {
             address={selectedPlace.address}
             kakaoId={selectedPlace.kakaoId}
           >
-            <div className="mt-4"><KakaoMap lat={selectedPlace.lat} lng={selectedPlace.lng} /></div>
+            <div className="mt-4">
+              <KakaoMap lat={selectedPlace.lat} lng={selectedPlace.lng} />
+            </div>
           </PlaceCard>
           <p className="text-center mt-4 text-lg font-semibold">모든 추천이 완료되었습니다!</p>
           <button
-            className="px-6 py-3 text-base font-medium rounded-lg border border-indigo-600 text-indigo-600 hover:bg-indigo-50 transition"
+            className="px-6 py-3 bg-gray-200 rounded-lg hover:bg-gray-300 transition transform active:scale-95 active:opacity-80"
             onClick={handleRestart}
           >
             처음으로 돌아가기
