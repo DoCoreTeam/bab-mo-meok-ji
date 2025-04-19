@@ -43,6 +43,7 @@ export default function Home() {
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
   const [usedPlaces, setUsedPlaces] = useState<Place[]>([]);
   const [started, setStarted] = useState(false);
+  const [isStarting, setIsStarting] = useState(false);
   const [loading, setLoading] = useState(false);
   const [viewMode, setViewMode] = useState<"select" | "recommend" | "finished">("select");
   const [categories, setCategories] = useState<Category[]>([]);
@@ -100,11 +101,6 @@ export default function Home() {
     }
     const fetchPlaces = async () => {
       setLoading(true);
-      if (!selectedFoods.length) {
-        setViewMode("finished");
-        setLoading(false);
-        return;
-      }
       try {
         const queries = selectedFoods
           .map(kw => categories.find(c => c.eng_keyword === kw)?.kor_name ?? kw)
@@ -151,8 +147,10 @@ export default function Home() {
       alert("선호 음식을 최소 1개 선택하세요!");
       return;
     }
+    setIsStarting(true);
     setStarted(true);
-  };
+  };  
+
   const handleAnotherRecommendation = () => {
     const available = places.filter(p => !usedPlaces.some(u => u.name === p.name));
     if (available.length && selectedPlace) {
@@ -160,11 +158,11 @@ export default function Home() {
       setSelectedPlace(next);
       setUsedPlaces(prev => [...prev, next]);
     } else {
-      // 마지막 추천 후에는 수동으로 재시작할 때까지 멈춤
       setViewMode("finished");
-      setStarted(false); // 더 이상 자동 추천 로직을 실행하지 않음
+      setStarted(false);
     }
   };
+
   const handleRestart = () => {
     setSelectedFoods([]);
     setStarted(false);
@@ -172,6 +170,7 @@ export default function Home() {
     setSelectedPlace(null);
     setUsedPlaces([]);
     setViewMode("select");
+    setIsStarting(false);
   };
 
   // Splash 화면
@@ -192,10 +191,13 @@ export default function Home() {
             style={{ width: `${progress}%` }}
           />
         </div>
-        <p className="mt-2 text-base font-medium text-gray-700 dark:text-gray-300">{`${Math.floor(progress)}%`}</p>
+        <p className="mt-2 text-base font-medium text-gray-700 dark:text-gray-300">{`${Math.floor(
+          progress
+        )}%`}</p>
       </div>
     );
   }
+
   // 메인 렌더링
   return (
     <Layout>
@@ -211,22 +213,30 @@ export default function Home() {
                 key={cat.id}
                 label={cat.kor_name}
                 selected={selectedFoods.includes(cat.eng_keyword)}
-                onClick={() => setSelectedFoods(prev =>
-                  prev.includes(cat.eng_keyword)
-                    ? prev.filter(f => f !== cat.eng_keyword)
-                    : prev.length < 5
+                onClick={() =>
+                  setSelectedFoods(prev =>
+                    prev.includes(cat.eng_keyword)
+                      ? prev.filter(f => f !== cat.eng_keyword)
+                      : prev.length < 5
                       ? [...prev, cat.eng_keyword]
                       : prev
-                )}
+                  )
+                }
               />
             ))}
           </div>
-          <button
-            className="w-full py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition transform active:scale-95 active:opacity-80"
-            onClick={handleStartRecommendation}
-          >
-            추천 시작
-          </button>
+          {isStarting ? (
+            <div className="flex justify-center py-3">
+              <div className="h-8 w-8 border-4 border-gray-300 border-t-indigo-600 rounded-full animate-spin"></div>
+            </div>
+          ) : (
+            <button
+              className="w-full py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition transform active:scale-95 active:opacity-80"
+              onClick={handleStartRecommendation}
+            >
+              추천 시작
+            </button>
+          )}
         </div>
       ) : loading ? (
         <p className="text-center py-4">맛집 추천 중...</p>
