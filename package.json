@@ -2,9 +2,7 @@
   "name": "bab-mo-meok-ji",
   "version": "0.1.0",
   "private": true,
-  "workspaces": [
-    "apps/web"
-  ],
+  "workspaces": ["apps/web"],
   "packageManager": "pnpm@10.8.1",
   "scripts": {
     "vercel-build": "cd apps/web && pnpm install && pnpm run build"
