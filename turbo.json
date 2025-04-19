@@ -1,12 +1,14 @@
 {
-    "$schema": "https://turbo.build/schema.json",
-    "pipeline": {
-      "build": {
-        "outputs": [".next/**", "dist/**"]
-      },
-      "dev": {
-        "cache": false
-      }
+  "$schema": "https://turbo.build/schema.json",
+  "tasks": {
+    "build": {
+      "outputs": [
+        "apps/web/.next/**",
+        "apps/web/dist/**"
+      ]
+    },
+    "dev": {
+      "cache": false
     }
   }
-  
+}
