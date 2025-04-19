@@ -256,7 +256,7 @@ export default function Home() {
             className="px-6 py-3 bg-gray-200 rounded-lg hover:bg-gray-300 transition transform active:scale-95 active:opacity-80"
             onClick={handleRestart}
           >
-            처음으로 돌아가기
+            처음으로 돌아가기!
           </button>
         </div>
       ) : (
