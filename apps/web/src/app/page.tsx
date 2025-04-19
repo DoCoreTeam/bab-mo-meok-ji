@@ -47,21 +47,24 @@ export default function Home() {
   const [viewMode, setViewMode] = useState<"select" | "recommend" | "finished">("select");
   const [categories, setCategories] = useState<Category[]>([]);
 
-  // Splash: 2초 진행 바 애니메이션 및 완료 시 숨김
+  // Splash: 2초 진행 바 직접 업데이트 후 완료 시 숨김
   useEffect(() => {
     const duration = 2000;
-    const start = Date.now();
+    const start = performance.now();
     let rafId: number;
-    function update() {
-      const elapsed = Date.now() - start;
+
+    const update = (now: number) => {
+      const elapsed = now - start;
       const pct = Math.min((elapsed / duration) * 100, 100);
       setProgress(pct);
       if (elapsed < duration) {
         rafId = requestAnimationFrame(update);
       } else {
+        setProgress(100);
         setShowSplash(false);
       }
-    }
+    };
+
     rafId = requestAnimationFrame(update);
     return () => cancelAnimationFrame(rafId);
   }, []);
@@ -85,7 +88,7 @@ export default function Home() {
     loadCategories();
   }, []);
 
-  // 2) 추천 로직: 시작→위치→검색
+  // 2) 추천 로직
   useEffect(() => {
     if (!started) return;
     if (!location) {
@@ -112,7 +115,7 @@ export default function Home() {
           lng: location.lng.toString(),
           radius: "1000",
         });
-        const res = await fetch(`/api/search?${params.toString()}`);
+        const res = await fetch(`/api/search?${params}`);
         const { documents } = await res.json();
         const fetched: Place[] = documents.map((doc: any) => ({
           name: doc.place_name,
@@ -178,19 +181,19 @@ export default function Home() {
           alt="오늘 뭐먹지?"
           width={300}
           height={300}
-          className="object-contain mb-6"
+          className="object-contain mb-4"
           priority
         />
         <div className="w-3/4 h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
           <div
-            className="h-full bg-indigo-500 dark:bg-indigo-400 transition-[width] duration-75"
+            className="h-full bg-indigo-500 dark:bg-indigo-400"
             style={{ width: `${progress}%` }}
           />
         </div>
+        <p className="mt-2 text-base font-medium text-gray-700 dark:text-gray-300">{`${Math.floor(progress)}%`}</p>
       </div>
     );
   }
-
   // 메인 렌더링
   return (
     <Layout>
