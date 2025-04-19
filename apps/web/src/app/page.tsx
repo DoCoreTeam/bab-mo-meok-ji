@@ -89,7 +89,7 @@ useEffect(() => {
           keywords: selectedFoods.join(","),
           lat: location.lat.toString(),
           lng: location.lng.toString(),
-          radius: "500",
+          radius: "1000",
         });
         const res = await fetch(`/api/search?${params.toString()}`);
         const { documents } = await res.json();
