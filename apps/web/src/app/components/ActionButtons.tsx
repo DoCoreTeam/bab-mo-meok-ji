@@ -30,7 +30,7 @@ export default function ActionButtons({ onAnother, onRestart, isFinished }: Acti
         className={
           `flex-1 py-3 px-5 font-semibold rounded-2xl transition-shadow shadow-sm hover:shadow-md
            bg-gray-100 text-gray-800 hover:bg-gray-200
-           dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600`
+           dark:bg-gray-700 dark:text-black-200 dark:hover:bg-gray-600`
         }
         onClick={onRestart}
       >
