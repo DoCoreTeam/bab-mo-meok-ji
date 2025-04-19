@@ -158,13 +158,8 @@ export default function Home() {
   // Splash 화면
   if (showSplash) {
     return (
-      <div className="w-screen h-screen flex items-center justify-center bg-[var(--background)]">
-        <img
-          src="/splash.png"
-          alt="오늘 뭐먹지?"
-          className="max-w-xs w-3/4 h-auto object-contain"
-          loading="eager"
-        />
+      <div className="w-screen h-screen flex items-center justify-center bg-white">
+        <h1 className="text-3xl font-bold">오늘 밥 뭐먹지?</h1>
       </div>
     );
   }
