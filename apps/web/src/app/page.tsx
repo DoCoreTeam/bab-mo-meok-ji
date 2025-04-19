@@ -89,10 +89,17 @@ export default function Home() {
       }
       try {
         const params = new URLSearchParams({
-          keywords: selectedFoods.join(","),
+          // keywords: selectedFoods.join(","),
+          // eng_keyword 대신 kor_name(한글)으로 검색어 구성
+          keywords: selectedFoods
+          .map(kw => {
+        const cat = categories.find(c => c.eng_keyword === kw);
+          return cat?.kor_name ?? kw;
+          })
+          .join(","),
           lat: location.lat.toString(),
           lng: location.lng.toString(),
-          radius: "1000",
+          radius: "2000",
         });
         const res = await fetch(`/api/search?${params.toString()}`);
         const { documents } = await res.json();
