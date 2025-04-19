@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import Layout from "@/app/components/Layout";
 import { CategoryButton } from "@/app/components/CategoryButton";
 import PlaceCard from "@/app/components/PlaceCard";
@@ -10,16 +11,16 @@ import { supabase } from "@/lib/supabaseClient";
 import KakaoMap from "@/app/components/Map/KakaoMap";
 
 // 카테고리 타입
-type Category = {
+export interface Category {
   id: number;
   kor_name: string;
   eng_keyword: string;
   icon_url?: string;
   description?: string;
-};
+}
 
 // 장소 정보 타입
-type Place = {
+export interface Place {
   name: string;
   kakaoName: string;
   kakaoId: string;
@@ -28,12 +29,14 @@ type Place = {
   lat: number;
   lng: number;
   category: string;
-};
+}
 
 export default function Home() {
-  // Splash screen state
+  // Splash state & progress
   const [showSplash, setShowSplash] = useState(true);
-  // 위치, 선택된 음식, 추천 로직 상태
+  const [progress, setProgress] = useState(0);
+
+  // 위치 & 추천 로직 상태
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [selectedFoods, setSelectedFoods] = useState<string[]>([]);
   const [places, setPlaces] = useState<Place[]>([]);
@@ -44,13 +47,22 @@ export default function Home() {
   const [viewMode, setViewMode] = useState<"select" | "recommend" | "finished">("select");
   const [categories, setCategories] = useState<Category[]>([]);
 
-  // Splash timeout (2초 후 메인으로)
+  // Splash: 2초 진행 바 애니메이션 및 종료
   useEffect(() => {
-    const timer = setTimeout(() => setShowSplash(false), 2000);
+    const duration = 2000;
+    const start = Date.now();
+    function update() {
+      const elapsed = Date.now() - start;
+      const pct = Math.min((elapsed / duration) * 100, 100);
+      setProgress(pct);
+      if (elapsed < duration) requestAnimationFrame(update);
+    }
+    requestAnimationFrame(update);
+    const timer = setTimeout(() => setShowSplash(false), duration);
     return () => clearTimeout(timer);
   }, []);
 
-  // 1) 카테고리 로드 & 랜덤 셔플
+  // 1) 카테고리 로드 & 셔플
   useEffect(() => {
     async function loadCategories() {
       const { data } = await supabase.from("food_categories").select("*");
@@ -69,7 +81,7 @@ export default function Home() {
     loadCategories();
   }, []);
 
-  // 2) 추천 로직: 시작, 위치, 음식 선택 변경 시
+  // 2) 추천 로직: 시작→위치→검색
   useEffect(() => {
     if (!started) return;
     if (!location) {
@@ -79,7 +91,6 @@ export default function Home() {
       );
       return;
     }
-
     const fetchPlaces = async () => {
       setLoading(true);
       if (!selectedFoods.length) {
@@ -88,18 +99,14 @@ export default function Home() {
         return;
       }
       try {
+        const queries = selectedFoods
+          .map(kw => categories.find(c => c.eng_keyword === kw)?.kor_name ?? kw)
+          .join(",");
         const params = new URLSearchParams({
-          // keywords: selectedFoods.join(","),
-          // eng_keyword 대신 kor_name(한글)으로 검색어 구성
-          keywords: selectedFoods
-          .map(kw => {
-        const cat = categories.find(c => c.eng_keyword === kw);
-          return cat?.kor_name ?? kw;
-          })
-          .join(","),
+          keywords: queries,
           lat: location.lat.toString(),
           lng: location.lng.toString(),
-          radius: "2000",
+          radius: "1000",
         });
         const res = await fetch(`/api/search?${params.toString()}`);
         const { documents } = await res.json();
@@ -129,11 +136,14 @@ export default function Home() {
       }
     };
     fetchPlaces();
-  }, [started, location, selectedFoods]);
+  }, [started, location, selectedFoods, categories]);
 
-  // 이벤트 핸들러
+  // 핸들러
   const handleStartRecommendation = () => {
-    if (!selectedFoods.length) return alert("선호 음식을 최소 1개 선택하세요!");
+    if (!selectedFoods.length) {
+      alert("선호 음식을 최소 1개 선택하세요!");
+      return;
+    }
     setStarted(true);
   };
   const handleAnotherRecommendation = () => {
@@ -158,25 +168,33 @@ export default function Home() {
   // Splash 화면
   if (showSplash) {
     return (
-      <div className="w-screen h-screen flex items-center justify-center bg-[var(--background)]">
-        <img
+      <div className="w-screen h-screen flex flex-col items-center justify-center bg-[var(--background)]">
+        <Image
           src="/splash.png"
           alt="오늘 뭐먹지?"
-          className="max-w-xs w-3/4 h-auto object-contain"
-          loading="eager"
+          width={300}
+          height={300}
+          className="object-contain mb-6"
+          priority
         />
+        <div className="w-3/4 h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-indigo-500 dark:bg-indigo-400 transition-[width]"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
       </div>
     );
   }
 
-  // 메인 UI
+  // 메인 렌더링
   return (
     <Layout>
       {categories.length === 0 ? (
         <p>카테고리 불러오는 중...</p>
       ) : viewMode === "select" ? (
-        <div className="w-full max-w-md mx-auto">
-          <p className="text-center mb-2">오늘은 뭐 먹을거예요?</p>
+        <div className="w-full max-w-md mx-auto bg-[var(--background)] text-[var(--foreground)] p-4 rounded-lg shadow transition-colors">
+          <p className="text-center text-xl font-semibold mb-2">오늘은 뭐 먹을거예요? (구글 별점 3 이상 추천)</p>
           <p className="text-center mb-4">좋아하는 음식을 선택하세요 (최대 5개)</p>
           <div className="grid grid-cols-2 gap-4 mb-6">
             {categories.map(cat => (
@@ -184,20 +202,18 @@ export default function Home() {
                 key={cat.id}
                 label={cat.kor_name}
                 selected={selectedFoods.includes(cat.eng_keyword)}
-                onClick={() =>
-                  setSelectedFoods(prev =>
-                    prev.includes(cat.eng_keyword)
-                      ? prev.filter(f => f !== cat.eng_keyword)
-                      : prev.length < 5
+                onClick={() => setSelectedFoods(prev =>
+                  prev.includes(cat.eng_keyword)
+                    ? prev.filter(f => f !== cat.eng_keyword)
+                    : prev.length < 5
                       ? [...prev, cat.eng_keyword]
                       : prev
-                  )
-                }
+                )}
               />
             ))}
           </div>
           <button
-            className="w-full py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+            className="w-full py-3 text-base font-medium rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition"
             onClick={handleStartRecommendation}
           >
             추천 시작
@@ -213,15 +229,9 @@ export default function Home() {
             address={selectedPlace.address}
             kakaoId={selectedPlace.kakaoId}
           >
-            <div className="mt-4">
-              <KakaoMap lat={selectedPlace.lat} lng={selectedPlace.lng} />
-            </div>
+            <div className="mt-4"><KakaoMap lat={selectedPlace.lat} lng={selectedPlace.lng} /></div>
           </PlaceCard>
-          <ActionButtons
-            onAnother={handleAnotherRecommendation}
-            onRestart={handleRestart}
-            isFinished={false}
-          />
+          <ActionButtons onAnother={handleAnotherRecommendation} onRestart={handleRestart} isFinished={false} />
         </div>
       ) : viewMode === "finished" && selectedPlace ? (
         <div className="flex flex-col items-center space-y-4">
@@ -231,13 +241,11 @@ export default function Home() {
             address={selectedPlace.address}
             kakaoId={selectedPlace.kakaoId}
           >
-            <div className="mt-4">
-              <KakaoMap lat={selectedPlace.lat} lng={selectedPlace.lng} />
-            </div>
+            <div className="mt-4"><KakaoMap lat={selectedPlace.lat} lng={selectedPlace.lng} /></div>
           </PlaceCard>
           <p className="text-center mt-4 text-lg font-semibold">모든 추천이 완료되었습니다!</p>
           <button
-            className="px-6 py-3 bg-gray-200 rounded-lg hover:bg-gray-300 transition"
+            className="px-6 py-3 text-base font-medium rounded-lg border border-indigo-600 text-indigo-600 hover:bg-indigo-50 transition"
             onClick={handleRestart}
           >
             처음으로 돌아가기
@@ -245,7 +253,7 @@ export default function Home() {
         </div>
       ) : (
         <div className="flex flex-col items-center space-y-2">
-          <p>추천할 맛집이 없습니다.</p>
+          <p className="text-center">추천할 맛집이 없습니다.</p>
           <ActionButtons onAnother={handleAnotherRecommendation} onRestart={handleRestart} isFinished />
         </div>
       )}
