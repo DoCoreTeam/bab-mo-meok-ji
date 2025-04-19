@@ -6,7 +6,7 @@ export async function GET(request: Request) {
   const keywordsParam = searchParams.get("keywords") || "";
   const lat = searchParams.get("lat") || "0";
   const lng = searchParams.get("lng") || "0";
-  const radius = searchParams.get("radius") || "100";
+  const radius = searchParams.get("radius") || "1000";
   const restKey = process.env.KAKAO_REST_API_KEY;
 
   if (!restKey) {
