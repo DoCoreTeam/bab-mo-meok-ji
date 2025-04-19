@@ -160,7 +160,7 @@ useEffect(() => {
         <p>카테고리 불러오는 중...</p>
       ) : viewMode === "select" ? (
         <div className="w-full max-w-md mx-auto">
-          <p className="text-center mb-t">오늘은 뭐 먹을거예요?</p>
+          <p className="text-center mb-t">오늘은 뭐 먹을거예요?(구글 별점 4이상 추천)</p>
           <p className="text-center mb-4">좋아하는 음식을 선택하세요 (최대 5개)</p>
           <div className="grid grid-cols-2 gap-4 mb-6">
             {categories.map(cat => (
