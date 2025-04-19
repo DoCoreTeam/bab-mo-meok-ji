@@ -11,7 +11,7 @@ export default function KakaoMap({ lat, lng }: { lat: number; lng: number }) {
     const tryInit = () => {
       if (!window.kakao || !window.kakao.maps) {
         // SDK가 아직 로드 전이면 잠시 대기 후 재시도
-        setTimeout(tryInit, 100);
+        setTimeout(tryInit, 500);
         return;
       }
       window.kakao.maps.load(() => {
