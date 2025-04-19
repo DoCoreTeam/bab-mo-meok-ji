@@ -6,6 +6,9 @@
     "apps/web"
   ],
   "packageManager": "pnpm@10.8.1",
+  "scripts": {
+    "vercel-build": "cd apps/web && pnpm install && pnpm run build"
+  },
   "devDependencies": {
     "turbo": "^2.5.0"
   }
