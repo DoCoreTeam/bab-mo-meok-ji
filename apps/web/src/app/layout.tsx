@@ -60,6 +60,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           crossOrigin="anonymous"
           async
         />
+        <meta name="google-adsense-account" content="ca-pub-5059503509737581"></meta>
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-gray-50 text-gray-900`}>
         {children}
