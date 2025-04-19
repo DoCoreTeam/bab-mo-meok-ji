@@ -24,7 +24,7 @@ export function useFetchPlaces(location: { lat: number; lng: number } | null, se
 
       try {
         const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!;
-        const radius = 500;
+        const radius = 100;
 
         let allPlaces: Place[] = [];
 
