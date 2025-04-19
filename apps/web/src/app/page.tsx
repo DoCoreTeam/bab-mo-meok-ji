@@ -110,14 +110,7 @@ export default function Home() {
           .map(kw => categories.find(c => c.eng_keyword === kw)?.kor_name ?? kw)
           .join(",");
         const params = new URLSearchParams({
-          // keywords: selectedFoods.join(","),
-          // eng_keyword 대신 kor_name(한글)으로 검색어 구성
-          keywords: selectedFoods
-          .map(kw => {
-        const cat = categories.find(c => c.eng_keyword === kw);
-          return cat?.kor_name ?? kw;
-          })
-          .join(","),
+          keywords: queries,
           lat: location.lat.toString(),
           lng: location.lng.toString(),
           radius: "1000",
@@ -167,7 +160,9 @@ export default function Home() {
       setSelectedPlace(next);
       setUsedPlaces(prev => [...prev, next]);
     } else {
+      // 마지막 추천 후에는 수동으로 재시작할 때까지 멈춤
       setViewMode("finished");
+      setStarted(false); // 더 이상 자동 추천 로직을 실행하지 않음
     }
   };
   const handleRestart = () => {
