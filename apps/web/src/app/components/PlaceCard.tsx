@@ -1,3 +1,5 @@
+// apps/web/src/app/components/PlaceCard.tsx
+
 "use client";
 
 import React from "react";
@@ -10,22 +12,29 @@ interface PlaceCardProps {
   children: React.ReactNode;
 }
 
-function PlaceCard({ name, category, address, kakaoId, children }: PlaceCardProps) {
+export default function PlaceCard({ name, category, address, kakaoId, children }: PlaceCardProps) {
   return (
-    <div className="bg-white p-6 rounded-xl shadow-lg text-center w-full max-w-md">
+    <div className="
+      w-full max-w-md p-6 rounded-xl shadow-lg
+      bg-white text-gray-900
+      dark:bg-gray-800 dark:text-gray-100 dark:shadow-xl
+      transition-colors duration-300 text-center
+    ">
       <a
         href={`https://place.map.kakao.com/${kakaoId}`}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-2xl font-bold underline hover:text-blue-600 block mb-2"
+        className="
+          text-2xl font-bold underline hover:text-blue-600
+          dark:hover:text-blue-400
+          block mb-2
+        "
       >
         {name}
       </a>
-      <p className="text-gray-600">{category}</p>
-      <p className="text-gray-500 text-sm">{address}</p>
+      <p className="text-gray-600 dark:text-gray-300">{category}</p>
+      <p className="text-gray-500 dark:text-gray-400 text-sm">{address}</p>
       <div className="mt-4">{children}</div>
     </div>
   );
 }
-
-export default PlaceCard;

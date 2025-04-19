@@ -62,7 +62,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
         <meta name="google-adsense-account" content="ca-pub-5059503509737581"></meta>
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-gray-50 text-gray-900`}>
+      <body
+        className={
+          "min-h-screen " +
+          "bg-[var(--background)] text-[var(--foreground)] " +
+          "transition-colors duration-300"
+        }
+      >
         {children}
       </body>
     </html>
