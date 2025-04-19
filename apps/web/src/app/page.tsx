@@ -47,19 +47,23 @@ export default function Home() {
   const [viewMode, setViewMode] = useState<"select" | "recommend" | "finished">("select");
   const [categories, setCategories] = useState<Category[]>([]);
 
-  // Splash: 2초 진행 바 애니메이션 및 종료
+  // Splash: 2초 진행 바 애니메이션 및 완료 시 숨김
   useEffect(() => {
     const duration = 2000;
     const start = Date.now();
+    let rafId: number;
     function update() {
       const elapsed = Date.now() - start;
       const pct = Math.min((elapsed / duration) * 100, 100);
       setProgress(pct);
-      if (elapsed < duration) requestAnimationFrame(update);
+      if (elapsed < duration) {
+        rafId = requestAnimationFrame(update);
+      } else {
+        setShowSplash(false);
+      }
     }
-    requestAnimationFrame(update);
-    const timer = setTimeout(() => setShowSplash(false), duration);
-    return () => clearTimeout(timer);
+    rafId = requestAnimationFrame(update);
+    return () => cancelAnimationFrame(rafId);
   }, []);
 
   // 1) 카테고리 로드 & 셔플
@@ -179,7 +183,7 @@ export default function Home() {
         />
         <div className="w-3/4 h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
           <div
-            className="h-full bg-indigo-500 dark:bg-indigo-400 transition-[width]"
+            className="h-full bg-indigo-500 dark:bg-indigo-400 transition-[width] duration-75"
             style={{ width: `${progress}%` }}
           />
         </div>
