@@ -97,12 +97,21 @@ export default function Home() {
       if (data) {
         const mealType = getCurrentMealType();
         const filtered = data.filter(cat => cat.type === mealType);
-        setCategories(filtered.slice(0, 10));
+    
+        const shuffle = <T,>(arr: T[]): T[] => {
+          const a = [...arr];
+          for (let i = a.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [a[i], a[j]] = [a[j], a[i]];
+          }
+          return a;
+        };
+    
+        const shuffled = shuffle(filtered);
+        setCategories(shuffled.slice(0, 10)); // ✅ 이렇게!
       }
     }
-    if (step === "select") {
-      loadCategories();
-    }
+    
   }, [step]);
 
   // 위치 가져오기
