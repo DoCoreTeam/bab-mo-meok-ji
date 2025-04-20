@@ -1,4 +1,4 @@
-// DOCORE: 2025-04-20 16:00 맛집 검색 실패해도 무한로딩 없이 넘어가게 최종 수정
+// DOCORE: 2025-04-20 16:15 싫어요 클릭 시 무한로딩 방지 (loading 상태 종료 추가)
 
 "use client";
 
@@ -174,7 +174,6 @@ export default function Home() {
           setUsedPlaces([]);
           setStep("recommend");
         } else {
-          console.warn("맛집이 검색되지 않았습니다.");
           setStep("finished");
         }
       } catch (error) {
@@ -255,7 +254,7 @@ export default function Home() {
             )
           }
           onNext={handleSelectNext}
-          typeLabel={typeLabel}
+          typeLabel={typeLabel} // ✅ 시간대별 문구 전달
         />
       ) : step === "loading" || loading ? (
         <LoadingScreen />
