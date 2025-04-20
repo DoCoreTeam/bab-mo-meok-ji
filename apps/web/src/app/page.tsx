@@ -1,4 +1,4 @@
-// DOCORE: 2025-04-20 15:25 추천 다 끝났을 때 마지막 맛집을 유지하는 최종 버전
+// DOCORE: 2025-04-20 15:45 시간대별 추천 문구(typeLabel)까지 포함한 최종 버전
 
 "use client";
 
@@ -35,15 +35,26 @@ export interface Place {
   category: string;
 }
 
-// 현재 시간에 따라 추천 타입 결정
+// DOCORE: 2025-04-20 15:45 시간대별 추천 타입 결정
 function getCurrentMealType(): "meal" | "snack" | "alcohol" {
   const now = new Date();
   const hour = now.getHours();
-  if ((hour >= 7 && hour < 10) || (hour >= 11 && hour < 14) || (hour >= 17 && hour < 20)) return "meal";
-  if ((hour >= 10 && hour < 11) || (hour >= 14 && hour < 17)) return "snack";
-  if (hour >= 18 || hour < 6) return "alcohol";
-  return "meal";
+
+  if ((hour >= 7 && hour < 10) || (hour >= 11 && hour < 14) || (hour >= 17 && hour < 20)) {
+    return "meal"; // 식사
+  }
+  if ((hour >= 10 && hour < 11) || (hour >= 14 && hour < 17)) {
+    return "snack"; // 간식
+  }
+  return "alcohol"; // 술안주
 }
+
+// DOCORE: 2025-04-20 15:45 시간대별 추천 문구 설정
+const typeLabel = {
+  meal: "🍽️ 지금은 식사 추천 시간입니다!",
+  snack: "🍩 지금은 간식 추천 시간입니다!",
+  alcohol: "🍻 지금은 술안주 추천 시간입니다!",
+}[getCurrentMealType()];
 
 export default function Home() {
   const [progress, setProgress] = useState(0);
@@ -191,7 +202,6 @@ export default function Home() {
       setSelectedPlace(next);
       setUsedPlaces(prev => [...prev, next]);
     } else {
-      // DOCORE: 2025-04-20 15:25 추천할 가게가 없어도 마지막 가게는 유지
       setStep("finished");
     }
   };
@@ -224,6 +234,7 @@ export default function Home() {
             )
           }
           onNext={handleSelectNext}
+          typeLabel={typeLabel} // ✅ 시간대별 문구 전달
         />
       ) : step === "loading" || loading ? (
         <LoadingScreen />

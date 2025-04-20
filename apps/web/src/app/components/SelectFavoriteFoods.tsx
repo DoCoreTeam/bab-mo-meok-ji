@@ -1,23 +1,16 @@
-// DOCORE: 2025-04-20 14:50 사용자가 기본 선호 음식을 선택하는 화면 컴포넌트
+// DOCORE: 2025-04-20 15:50 SelectFavoriteFoods 컴포넌트 (typeLabel 추가 반영)
 
 "use client";
 
-import React from "react";
+import { Category } from "@/app/page";
 import { CategoryButton } from "@/app/components/CategoryButton";
 
-interface Category {
-  id: number;
-  kor_name: string;
-  eng_keyword: string;
-  icon_url?: string;
-  description?: string;
-}
-
 interface SelectFavoriteFoodsProps {
-  categories: Category[];           // DB에서 가져온 음식 카테고리
-  selectedFoods: string[];           // 현재 선택된 음식 키워드 목록
-  onToggleFood: (food: string) => void; // 음식 선택/해제 핸들러
-  onNext: () => void;                // "선택 완료" 버튼 눌렀을 때 핸들러
+  categories: Category[];
+  selectedFoods: string[];
+  onToggleFood: (food: string) => void;
+  onNext: () => Promise<void>;
+  typeLabel: string; // ✅ 추가: 어떤 타입(식사/간식/술안주) 추천 중인지 표시
 }
 
 export default function SelectFavoriteFoods({
@@ -25,11 +18,15 @@ export default function SelectFavoriteFoods({
   selectedFoods,
   onToggleFood,
   onNext,
+  typeLabel,
 }: SelectFavoriteFoodsProps) {
   return (
-    <div className="w-full max-w-md mx-auto p-4 bg-[var(--background)] text-[var(--foreground)] rounded-lg shadow transition-colors">
-      <h2 className="text-center text-2xl font-bold mb-2">오늘은 어떤 음식을?</h2>
-      <p className="text-center mb-4 text-base">최대 5개까지 선택할 수 있어요!</p>
+    <div className="w-full max-w-md mx-auto p-4 bg-[var(--background)] text-[var(--foreground)] rounded-lg shadow transition-colors flex flex-col items-center">
+      {/* ✅ 타입별 추천 문구 표시 */}
+      <h2 className="text-center text-lg font-semibold mb-2">{typeLabel}</h2>
+      
+      <p className="text-center text-xl font-bold mb-2">오늘은 뭐 먹을까요? (구글 별점 3 이상 추천)</p>
+      <p className="text-center mb-4">좋아하는 음식을 선택하세요 (최대 5개)</p>
 
       <div className="grid grid-cols-2 gap-4 mb-6">
         {categories.map(cat => (
@@ -45,7 +42,6 @@ export default function SelectFavoriteFoods({
       <button
         className="w-full py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition transform active:scale-95 active:opacity-80"
         onClick={onNext}
-        disabled={selectedFoods.length === 0}
       >
         선택 완료
       </button>
