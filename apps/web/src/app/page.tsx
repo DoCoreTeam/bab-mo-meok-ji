@@ -96,7 +96,13 @@ export default function Home() {
       const { data } = await supabase.from("food_categories").select("*");
       if (data) {
         const mealType = getCurrentMealType();
-        const filtered = data.filter(cat => cat.type === mealType);
+        let filtered = data.filter(cat => cat.type === mealType);
+    
+        // ✅ 데이터가 비어있으면 fallback: 전체에서 랜덤으로
+        if (filtered.length === 0) {
+          console.warn(`[경고] ${mealType} 타입 음식이 부족합니다. 전체 데이터로 대체합니다.`);
+          filtered = data;
+        }
     
         const shuffle = <T,>(arr: T[]): T[] => {
           const a = [...arr];
@@ -108,7 +114,7 @@ export default function Home() {
         };
     
         const shuffled = shuffle(filtered);
-        setCategories(shuffled.slice(0, 10)); // ✅ 이렇게!
+        setCategories(shuffled.slice(0, 10));
       }
     }
     
