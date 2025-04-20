@@ -161,10 +161,13 @@ export default function Home() {
 
   // 핸들러
   const handleSelectNext = async () => {
+    setLoading(true); // ✅ 버튼 누르자마자 스피너
     const aiRecommendations = await fetchAdditionalRecommendations(selectedFoods);
-    setAiFoods(aiRecommendations.slice(0, 2)); // AI 추가 추천 2개
-    setStep("aiReview");
+    setAiFoods(aiRecommendations.slice(0, 2));
+    setLoading(false); // ✅ AI 추천 완료되면 스피너 끄고
+    setStep("aiReview"); // ✅ 그 다음 AI 추천 화면으로 이동
   };
+  
 
   const handleAcceptAiFoods = () => {
     const combined = [...selectedFoods, ...aiFoods.map(f => f.toLowerCase().replace(/\s+/g, "-"))];
