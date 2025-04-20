@@ -75,11 +75,12 @@ export default function CategorySelector({
   saveSelectedFoods,
   handleStartRecommendation,
 }: CategorySelectorProps) {
+  // ✅ 여기 추가
   const shuffledCategories = useMemo(() => {
     return [...categories]
       .sort(() => 0.5 - Math.random())
       .slice(0, 10);
-  }, [categories]); // 카테고리 목록이 변할 때만 섞는다
+  }, [categories]);
 
   const handleToggle = (food: string) => {
     if (selectedFoods.includes(food)) {
@@ -94,6 +95,7 @@ export default function CategorySelector({
     <div className="w-full max-w-md">
       <p className="text-center mb-4">좋아하는 음식을 선택하세요 (최대 5개)</p>
       <div className="grid grid-cols-2 gap-4 mb-6">
+        {/** ✅ 여기 바꿔야 해 */}
         {shuffledCategories.map((cat) => (
           <button
             key={cat.id}
