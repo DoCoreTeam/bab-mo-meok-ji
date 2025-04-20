@@ -1,4 +1,4 @@
-// DOCORE: 2025-04-20 16:50 싫어요 클릭 시 selectedFoods 그대로 사용해서 검색하는 최종 완성
+// DOCORE: 2025-04-20 17:00 싫어요 클릭 후 검색 정상 작동 최종 수정
 
 "use client";
 
@@ -48,7 +48,7 @@ function getCurrentMealType(): "meal" | "snack" | "alcohol" {
   return "alcohol";
 }
 
-// 시간대별 문구
+// 추천 문구
 const typeLabel = {
   meal: "🍽️ 지금은 식사 추천 시간입니다!",
   snack: "🍩 지금은 간식 추천 시간입니다!",
@@ -120,7 +120,14 @@ export default function Home() {
     async function fetchPlaces() {
       if (!location) return;
 
-      const queries = selectedFoods.join(",");
+      // ✅ 여기 핵심: selectedFoods(slug) -> categories 찾아서 kor_name으로 변환해서 검색
+      const queries = selectedFoods
+        .map(slug => {
+          const cat = categories.find(c => c.eng_keyword === slug);
+          return cat?.kor_name || slug;
+        })
+        .join(",");
+
       const params = new URLSearchParams({
         keywords: queries,
         lat: location.lat.toString(),
@@ -159,7 +166,7 @@ export default function Home() {
     if (step === "search") {
       fetchPlaces();
     }
-  }, [step, location, selectedFoods]);
+  }, [step, location, selectedFoods, categories]);
 
   // 핸들러
   const handleSelectNext = async () => {
@@ -185,7 +192,7 @@ export default function Home() {
       saveDislikedFood(slug);
     });
     setAiFoods([]);
-    setStep("search"); // selectedFoods는 그대로, 검색만 다시
+    setStep("search"); // selectedFoods 그대로 유지!
   };
 
   const handleAnotherRecommendation = () => {
