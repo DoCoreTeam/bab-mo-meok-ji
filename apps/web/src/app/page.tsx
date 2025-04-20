@@ -1,4 +1,4 @@
-// DOCORE: 2025-04-20 16:15 싫어요 클릭 시 무한로딩 방지 (loading 상태 종료 추가)
+// DOCORE: 2025-04-20 16:25 최종 - 좋아요/싫어요 완벽 처리
 
 "use client";
 
@@ -202,16 +202,25 @@ export default function Home() {
   };
 
   const handleAcceptAiFoods = () => {
-    const combined = [...selectedFoods, ...aiFoods.map(f => f.toLowerCase().replace(/\s+/g, "-"))];
+    // ✅ 좋아요 - 기존 선택 + AI 추천 추가
+    const combined = [
+      ...selectedFoods,
+      ...aiFoods.map(f => f.toLowerCase().replace(/\s+/g, "-")),
+    ];
     setSelectedFoods(combined);
+    setAiFoods([]);
+    setLoading(false);
     setStep("search");
   };
 
   const handleRejectAiFoods = () => {
+    // ✅ 싫어요 - 기존 선택만 유지
     aiFoods.forEach(food => {
       const slug = food.toLowerCase().replace(/\s+/g, "-");
       saveDislikedFood(slug);
     });
+    setAiFoods([]);
+    setLoading(false);
     setStep("search");
   };
 
@@ -254,7 +263,7 @@ export default function Home() {
             )
           }
           onNext={handleSelectNext}
-          typeLabel={typeLabel} // ✅ 시간대별 문구 전달
+          typeLabel={typeLabel}
         />
       ) : step === "loading" || loading ? (
         <LoadingScreen />
