@@ -1,4 +1,4 @@
-// DOCORE: 2025-04-20 16:25 최종 - 좋아요/싫어요 완벽 처리
+// DOCORE: 2025-04-20 16:40 싫어요 시 selectedFoods 재필터링까지 반영한 최종 버전
 
 "use client";
 
@@ -214,11 +214,17 @@ export default function Home() {
   };
 
   const handleRejectAiFoods = () => {
-    // ✅ 싫어요 - 기존 선택만 유지
+    // ✅ 싫어요 - AI 추천 제외 후 검색
     aiFoods.forEach(food => {
       const slug = food.toLowerCase().replace(/\s+/g, "-");
       saveDislikedFood(slug);
     });
+
+    const filteredSelected = selectedFoods.filter(food =>
+      !aiFoods.some(aiFood => aiFood.toLowerCase().replace(/\s+/g, "-") === food)
+    );
+
+    setSelectedFoods(filteredSelected);
     setAiFoods([]);
     setLoading(false);
     setStep("search");
