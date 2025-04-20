@@ -25,8 +25,27 @@ export function useDislikeManager() {
     return now - timestamp < oneWeek;
   }, []);
 
+  
+
   return {
     saveDislikedFood,
     isFoodDisliked,
   };
 }
+
+// ✅ 여기 추가
+if (typeof window !== "undefined") {
+    window.printDislikedFoods = () => {
+      const raw = localStorage.getItem("dislikedFoods") || "{}";
+      const dislikes = JSON.parse(raw);
+  
+      const now = Date.now();
+      const oneWeek = 7 * 24 * 60 * 60 * 1000;
+  
+      const validDislikes = Object.entries(dislikes)
+        .filter(([_, timestamp]) => typeof timestamp === "number" && now - timestamp < oneWeek)
+        .map(([food]) => food);
+  
+      console.table(validDislikes);
+    };
+  }
