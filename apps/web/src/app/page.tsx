@@ -1,4 +1,4 @@
-// DOCORE: 2025-04-20 17:00 싫어요 클릭 후 검색 정상 작동 최종 수정
+// DOCORE: 2025-04-20 17:20 PlaceCard children 필수 반영 완료 최종본
 
 "use client";
 
@@ -15,7 +15,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { fetchAdditionalRecommendations } from "@/lib/openai";
 import { useDislikeManager } from "@/app/hooks/useDislikeManager";
 
-// 타입
+// 타입 정의
 export interface Category {
   id: number;
   kor_name: string;
@@ -48,7 +48,7 @@ function getCurrentMealType(): "meal" | "snack" | "alcohol" {
   return "alcohol";
 }
 
-// 추천 문구
+// 시간대별 문구
 const typeLabel = {
   meal: "🍽️ 지금은 식사 추천 시간입니다!",
   snack: "🍩 지금은 간식 추천 시간입니다!",
@@ -110,7 +110,7 @@ export default function Home() {
     if (!location) {
       navigator.geolocation.getCurrentPosition(
         pos => setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-        () => setLocation({ lat: 37.5665, lng: 126.978 }) // 기본 서울
+        () => setLocation({ lat: 37.5665, lng: 126.978 })
       );
     }
   }, []);
@@ -120,7 +120,6 @@ export default function Home() {
     async function fetchPlaces() {
       if (!location) return;
 
-      // ✅ 여기 핵심: selectedFoods(slug) -> categories 찾아서 kor_name으로 변환해서 검색
       const queries = selectedFoods
         .map(slug => {
           const cat = categories.find(c => c.eng_keyword === slug);
@@ -192,7 +191,7 @@ export default function Home() {
       saveDislikedFood(slug);
     });
     setAiFoods([]);
-    setStep("search"); // selectedFoods 그대로 유지!
+    setStep("search");
   };
 
   const handleAnotherRecommendation = () => {
@@ -257,6 +256,21 @@ export default function Home() {
             </div>
           </PlaceCard>
           <ActionButtons onAnother={handleAnotherRecommendation} onRestart={handleRestart} isFinished={false} />
+        </div>
+      ) : step === "finished" && selectedPlace ? (
+        <div className="flex flex-col items-center space-y-4">
+          <PlaceCard
+            name={selectedPlace.kakaoName}
+            category={selectedPlace.category}
+            address={selectedPlace.address}
+            kakaoId={selectedPlace.kakaoId}
+          >
+            <div className="mt-4">
+              <KakaoMap lat={selectedPlace.lat} lng={selectedPlace.lng} />
+            </div>
+          </PlaceCard>
+          <p className="text-center text-lg font-semibold">모든 추천이 완료되었습니다!</p>
+          <ActionButtons onAnother={handleAnotherRecommendation} onRestart={handleRestart} isFinished />
         </div>
       ) : (
         <LoadingScreen />
