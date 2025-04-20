@@ -1,4 +1,4 @@
-// DOCORE: 2025-04-20 15:20 오늘 뭐 먹지 메인 페이지 (Splash → 기본 선택 → AI 추천 → 좋아요/싫어요 → 추천 검색 흐름)
+// DOCORE: 2025-04-20 15:25 추천 다 끝났을 때 마지막 맛집을 유지하는 최종 버전
 
 "use client";
 
@@ -191,6 +191,7 @@ export default function Home() {
       setSelectedPlace(next);
       setUsedPlaces(prev => [...prev, next]);
     } else {
+      // DOCORE: 2025-04-20 15:25 추천할 가게가 없어도 마지막 가게는 유지
       setStep("finished");
     }
   };
@@ -250,15 +251,27 @@ export default function Home() {
             isFinished={false}
           />
         </div>
-      ) : (
+      ) : step === "finished" && selectedPlace ? (
         <div className="flex flex-col items-center space-y-4">
-          <p className="text-center text-lg font-semibold">추천할 맛집이 없습니다 😢</p>
+          <PlaceCard
+            name={selectedPlace.kakaoName}
+            category={selectedPlace.category}
+            address={selectedPlace.address}
+            kakaoId={selectedPlace.kakaoId}
+          >
+            <div className="mt-4">
+              <KakaoMap lat={selectedPlace.lat} lng={selectedPlace.lng} />
+            </div>
+          </PlaceCard>
+          <p className="text-center text-lg font-semibold">모든 추천이 완료되었습니다!</p>
           <ActionButtons
             onAnother={handleAnotherRecommendation}
             onRestart={handleRestart}
             isFinished
           />
         </div>
+      ) : (
+        <LoadingScreen />
       )}
     </Layout>
   );
