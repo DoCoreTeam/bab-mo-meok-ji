@@ -9,6 +9,8 @@ import PlaceCard from "@/app/components/PlaceCard";
 import ActionButtons from "@/app/components/ActionButtons";
 import { supabase } from "@/lib/supabaseClient";
 import KakaoMap from "@/app/components/Map/KakaoMap";
+import { fetchAdditionalRecommendations } from "@/lib/openai"; // DOCORE: OpenAI 추가 음식 추천 회원 및 여부 채택
+
 
 // DOCORE: 현재 시간에 따라 소개할 음식 타입(식사, 간식, 술안주) 결정
 function getCurrentMealType(): "meal" | "snack" | "alcohol" {
@@ -172,12 +174,17 @@ export default function Home() {
   }, [started, location, selectedFoods, categories]);
 
   // 핸들러
-  const handleStartRecommendation = () => {
+  const handleStartRecommendation = async () => {
     if (!selectedFoods.length) {
       alert("선호 음식을 최소 1개 선택하세요!");
       return;
     }
     setIsStarting(true);
+
+    // DOCORE: OpenAI API를 호출하여 사용자 선호 기반 추가 음식 추천 받기
+    const aiRecommendations = await fetchAdditionalRecommendations(selectedFoods);
+    console.log("AI 추천 결과:", aiRecommendations);
+
     setStarted(true);
   };  
 
@@ -227,6 +234,8 @@ export default function Home() {
       </div>
     );
   }
+
+  
 
   // 메인 렌더링
   return (
