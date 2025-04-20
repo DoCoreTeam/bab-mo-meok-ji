@@ -73,6 +73,8 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [viewMode, setViewMode] = useState<"select" | "recommend" | "finished">("select");
   const [categories, setCategories] = useState<Category[]>([]);
+  const [aiCategories, setAiCategories] = useState<Category[]>([]); // DOCORE: 2024-04-21 OpenAI 추천 음식 별도 관리 추가
+
 
   // Splash: 2초 진행 바 직접 업데이트 후 완료 시 숨김
   useEffect(() => {
@@ -181,9 +183,20 @@ export default function Home() {
     }
     setIsStarting(true);
 
-    // DOCORE: OpenAI API를 호출하여 사용자 선호 기반 추가 음식 추천 받기
+    // DOCORE: 2024-04-21 OpenAI API를 호출하여 사용자 선호 기반 추가 음식 추천 받기
     const aiRecommendations = await fetchAdditionalRecommendations(selectedFoods);
     console.log("AI 추천 결과:", aiRecommendations);
+
+    // DOCORE: 2024-04-21 추가 추천된 음식들을 별도로 관리 (가짜 ID 부여)
+    const additionalCategories = aiRecommendations.map((food, index) => ({
+      id: 20000 + index, // 가짜 ID 부여 (AI 추천용)
+      kor_name: food,
+      eng_keyword: food.toLowerCase().replace(/\s+/g, '-'),
+      type: "meal", // 기본 식사로 설정
+    }));
+
+    setAiCategories(additionalCategories); // 별도로 AI 추천 저장
+
 
     setStarted(true);
   };  
@@ -248,6 +261,7 @@ export default function Home() {
           <p className="text-center mb-2 text-lg font-semibold">{typeLabel}</p>
           <p className="text-center text-xl font-semibold mb-2">오늘은 뭐 먹을거예요? (구글 별점 3 이상 추천)</p>
           <p className="text-center mb-4">좋아하는 음식을 선택하세요 (최대 5개)</p>
+          {/* DOCORE: 2024-04-21 기본 추천 음식 표시 */}
           <div className="grid grid-cols-2 gap-4 mb-6">
             {categories.map(cat => (
               <CategoryButton
@@ -266,6 +280,31 @@ export default function Home() {
               />
             ))}
           </div>
+
+          {/* DOCORE: 2024-04-21 AI 추천 음식 별도 표시 */}
+          {aiCategories.length > 0 && (
+            <>
+              <p className="text-center text-lg font-semibold mt-8 mb-4">🤖 AI가 추천한 음식</p>
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                {aiCategories.map(cat => (
+                  <CategoryButton
+                    key={cat.id}
+                    label={cat.kor_name}
+                    selected={selectedFoods.includes(cat.eng_keyword)}
+                    onClick={() =>
+                      setSelectedFoods(prev =>
+                        prev.includes(cat.eng_keyword)
+                          ? prev.filter(f => f !== cat.eng_keyword)
+                          : prev.length < 5
+                          ? [...prev, cat.eng_keyword]
+                          : prev
+                      )
+                    }
+                  />
+                ))}
+              </div>
+            </>
+          )}
           {isStarting ? (
             <div className="flex justify-center py-3">
               <div className="h-8 w-8 border-4 border-gray-300 border-t-indigo-600 rounded-full animate-spin"></div>
