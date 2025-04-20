@@ -10,6 +10,23 @@ import ActionButtons from "@/app/components/ActionButtons";
 import { supabase } from "@/lib/supabaseClient";
 import KakaoMap from "@/app/components/Map/KakaoMap";
 
+function getCurrentMealType(): "meal" | "snack" | "alcohol" {
+  const now = new Date();
+  const hour = now.getHours();
+
+  if ((hour >= 7 && hour < 10) || (hour >= 11 && hour < 14) || (hour >= 17 && hour < 20)) {
+    return "meal";
+  }
+  if ((hour >= 10 && hour < 11) || (hour >= 14 && hour < 17)) {
+    return "snack";
+  }
+  if (hour >= 18 || hour < 6) {
+    return "alcohol";
+  }
+  return "meal"; // 기본 fallback
+}
+
+
 // 카테고리 타입
 export interface Category {
   id: number;
@@ -83,11 +100,17 @@ export default function Home() {
           }
           return a;
         };
-        setCategories(shuffle(data).slice(0, 10)); // ✅ 여기! 셔플 후 10개만
+        
+        const mealType = getCurrentMealType(); // ✅ 현재 시간에 맞는 타입 결정
+        const filtered = data.filter(cat => cat.type === mealType); // ✅ 타입에 맞게 필터
+        const shuffled = shuffle(filtered).slice(0, 10); // ✅ 셔플 후 10개 선택
+  
+        setCategories(shuffled);
       }
     }
     loadCategories();
   }, []);
+  
 
   // 2) 추천 로직
   useEffect(() => {
