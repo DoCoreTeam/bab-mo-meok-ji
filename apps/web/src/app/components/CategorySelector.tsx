@@ -58,6 +58,7 @@
 "use client";
 
 import { Category } from "@/types/Place";
+import { useMemo } from "react";
 
 interface CategorySelectorProps {
   categories: Category[];
@@ -74,10 +75,11 @@ export default function CategorySelector({
   saveSelectedFoods,
   handleStartRecommendation,
 }: CategorySelectorProps) {
-  // ✅ 여기에 추가
-  const shuffledCategories = [...categories]
-    .sort(() => 0.5 - Math.random())
-    .slice(0, 10);
+  const shuffledCategories = useMemo(() => {
+    return [...categories]
+      .sort(() => 0.5 - Math.random())
+      .slice(0, 10);
+  }, [categories]); // 카테고리 목록이 변할 때만 섞는다
 
   const handleToggle = (food: string) => {
     if (selectedFoods.includes(food)) {
