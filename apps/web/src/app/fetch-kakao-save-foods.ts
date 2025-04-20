@@ -70,6 +70,18 @@ const foodList = [
   { kor_name: '오징어숙회', type: 'alcohol' },
   { kor_name: '치즈플래터', type: 'alcohol' },
   { kor_name: '감바스', type: 'alcohol' },
+  { kor_name: '호떡', type: 'snack' },
+  { kor_name: '붕어빵', type: 'snack' },
+  { kor_name: '샌드위치', type: 'snack' },
+  { kor_name: '크레페', type: 'snack' },
+  { kor_name: '핫바', type: 'snack' },
+  { kor_name: '츄러스', type: 'snack' },
+  { kor_name: '프레첼', type: 'snack' },
+  { kor_name: '도넛', type: 'snack' },
+  { kor_name: '마카롱', type: 'snack' },
+  { kor_name: '타코야끼', type: 'snack' },
+  { kor_name: '브런치', type: 'snack' },
+  { kor_name: '과일 샐러드', type: 'snack' },
 ];
 
 const slugify = (text: string) => text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '-').toLowerCase();
@@ -77,6 +89,22 @@ const slugify = (text: string) => text.normalize('NFD').replace(/[\u0300-\u036f]
 const main = async () => {
   for (const food of foodList) {
     const engKeyword = slugify(food.kor_name);
+
+    const { data, error: selectError } = await supabase
+      .from('food_categories')
+      .select('id')
+      .eq('kor_name', food.kor_name)
+      .maybeSingle();
+
+    if (selectError) {
+      console.error(`\u274c Select failed: ${food.kor_name}`, selectError.message);
+      continue;
+    }
+
+    if (data) {
+      console.log(`\u26a0\ufe0f Already exists: ${food.kor_name}`);
+      continue;
+    }
 
     const { error } = await supabase.from('food_categories').insert({
       kor_name: food.kor_name,

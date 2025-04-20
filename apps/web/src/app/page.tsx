@@ -10,6 +10,7 @@ import ActionButtons from "@/app/components/ActionButtons";
 import { supabase } from "@/lib/supabaseClient";
 import KakaoMap from "@/app/components/Map/KakaoMap";
 
+// DOCORE: 현재 시간에 따라 소개할 음식 타입(식사, 간식, 술안주) 결정
 function getCurrentMealType(): "meal" | "snack" | "alcohol" {
   const now = new Date();
   const hour = now.getHours();
@@ -26,6 +27,12 @@ function getCurrentMealType(): "meal" | "snack" | "alcohol" {
   return "meal"; // 기본 fallback
 }
 
+// DOCORE: 현재 가장 적절한 체용 문구 설정
+const typeLabel = {
+  meal: "🍽️ 지금은 식사 추천 시간입니다!",
+  snack: "🍩 지금은 간식 추천 시간입니다!",
+  alcohol: "🍻 지금은 술안주 추천 시간입니다!",
+}[getCurrentMealType()];
 
 // 카테고리 타입
 export interface Category {
@@ -228,6 +235,8 @@ export default function Home() {
         <p className="text-center py-4">카테고리 불러오는 중...</p>
       ) : viewMode === "select" ? (
         <div className="w-full max-w-md mx-auto bg-[var(--background)] text-[var(--foreground)] p-4 rounded-lg shadow transition-colors">
+          {/* DOCORE: 현재 가장 적절한 체용 문구 표시 */}
+          <p className="text-center mb-2 text-lg font-semibold">{typeLabel}</p>
           <p className="text-center text-xl font-semibold mb-2">오늘은 뭐 먹을거예요? (구글 별점 3 이상 추천)</p>
           <p className="text-center mb-4">좋아하는 음식을 선택하세요 (최대 5개)</p>
           <div className="grid grid-cols-2 gap-4 mb-6">
