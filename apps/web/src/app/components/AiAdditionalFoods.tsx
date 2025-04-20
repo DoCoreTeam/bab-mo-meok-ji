@@ -34,18 +34,21 @@ export default function AiAdditionalFoods({
       </div>
 
       <div className="flex space-x-4">
+        
         <button
-          className="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition transform active:scale-95"
-          onClick={onAccept}
+        className="w-full py-3 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition transform active:scale-95 active:opacity-80"
+        onClick={onAccept}
         >
-          좋아요 👍
+        좋아요 👍
         </button>
+
         <button
-          className="px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition transform active:scale-95"
-          onClick={onReject}
+        className="w-full py-3 bg-rose-400 text-white rounded-lg hover:bg-rose-500 transition transform active:scale-95 active:opacity-80"
+        onClick={onReject}
         >
-          싫어요 👎
+        싫어요 👎
         </button>
+
       </div>
     </div>
   );
