@@ -1,4 +1,4 @@
-// DOCORE: 2025-04-20 15:10 오늘 뭐 먹지 메인 페이지 (Splash → 음식 선택 → AI 추천 → 좋아요/싫어요 → 추천 검색)
+// DOCORE: 2025-04-20 15:20 오늘 뭐 먹지 메인 페이지 (Splash → 기본 선택 → AI 추천 → 좋아요/싫어요 → 추천 검색 흐름)
 
 "use client";
 
@@ -46,13 +46,12 @@ function getCurrentMealType(): "meal" | "snack" | "alcohol" {
 }
 
 export default function Home() {
-  // 상태
   const [progress, setProgress] = useState(0);
   const [showSplash, setShowSplash] = useState(true);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedFoods, setSelectedFoods] = useState<string[]>([]);
   const [aiFoods, setAiFoods] = useState<string[]>([]);
-  const [step, setStep] = useState<"splash" | "select" | "aiReview" | "search" | "recommend" | "finished">("splash");
+  const [step, setStep] = useState<"splash" | "select" | "loading" | "aiReview" | "search" | "recommend" | "finished">("splash");
   const [places, setPlaces] = useState<Place[]>([]);
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
   const [usedPlaces, setUsedPlaces] = useState<Place[]>([]);
@@ -114,7 +113,7 @@ export default function Home() {
     if (!location) {
       navigator.geolocation.getCurrentPosition(
         pos => setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-        () => setLocation({ lat: 37.5665, lng: 126.978 }) // 서울 기본 좌표
+        () => setLocation({ lat: 37.5665, lng: 126.978 })
       );
     }
   }, []);
@@ -161,13 +160,15 @@ export default function Home() {
 
   // 핸들러
   const handleSelectNext = async () => {
-    setLoading(true); // ✅ 버튼 누르자마자 스피너
+    setLoading(true);
+    setStep("loading");
+
     const aiRecommendations = await fetchAdditionalRecommendations(selectedFoods);
     setAiFoods(aiRecommendations.slice(0, 2));
-    setLoading(false); // ✅ AI 추천 완료되면 스피너 끄고
-    setStep("aiReview"); // ✅ 그 다음 AI 추천 화면으로 이동
+
+    setLoading(false);
+    setStep("aiReview");
   };
-  
 
   const handleAcceptAiFoods = () => {
     const combined = [...selectedFoods, ...aiFoods.map(f => f.toLowerCase().replace(/\s+/g, "-"))];
@@ -223,14 +224,14 @@ export default function Home() {
           }
           onNext={handleSelectNext}
         />
+      ) : step === "loading" || loading ? (
+        <LoadingScreen />
       ) : step === "aiReview" ? (
         <AiAdditionalFoods
           aiFoods={aiFoods}
           onAccept={handleAcceptAiFoods}
           onReject={handleRejectAiFoods}
         />
-      ) : loading ? (
-        <LoadingScreen />
       ) : step === "recommend" && selectedPlace ? (
         <div className="flex flex-col items-center space-y-4">
           <PlaceCard
