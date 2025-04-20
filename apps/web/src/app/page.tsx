@@ -83,7 +83,7 @@ export default function Home() {
           }
           return a;
         };
-        setCategories(shuffle(data));
+        setCategories(shuffle(data).slice(0, 10)); // ✅ 여기! 셔플 후 10개만
       }
     }
     loadCategories();
