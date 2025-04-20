@@ -268,7 +268,7 @@ export default function Home() {
           </PlaceCard>
           <p className="text-center mt-4 text-lg font-semibold">모든 추천이 완료되었습니다!</p>
           <button
-            className="px-6 py-3 bg-gray-200 rounded-lg hover:bg-gray-300 transition transform active:scale-95 active:opacity-80"
+            className="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition transform active:scale-95 active:opacity-80"
             onClick={handleRestart}
           >
             처음으로 돌아가기!
