@@ -1,4 +1,4 @@
-// DOCORE: 2025-04-20 15:45 시간대별 추천 문구(typeLabel)까지 포함한 최종 버전
+// DOCORE: 2025-04-20 16:00 맛집 검색 실패해도 무한로딩 없이 넘어가게 최종 수정
 
 "use client";
 
@@ -35,7 +35,7 @@ export interface Place {
   category: string;
 }
 
-// DOCORE: 2025-04-20 15:45 시간대별 추천 타입 결정
+// 시간대별 추천 타입 결정
 function getCurrentMealType(): "meal" | "snack" | "alcohol" {
   const now = new Date();
   const hour = now.getHours();
@@ -49,7 +49,7 @@ function getCurrentMealType(): "meal" | "snack" | "alcohol" {
   return "alcohol"; // 술안주
 }
 
-// DOCORE: 2025-04-20 15:45 시간대별 추천 문구 설정
+// 추천 문구
 const typeLabel = {
   meal: "🍽️ 지금은 식사 추천 시간입니다!",
   snack: "🍩 지금은 간식 추천 시간입니다!",
@@ -71,7 +71,7 @@ export default function Home() {
 
   const { saveDislikedFood, isFoodDisliked } = useDislikeManager();
 
-  // Splash 로딩
+  // Splash 화면
   useEffect(() => {
     const duration = 2000;
     const start = performance.now();
@@ -92,7 +92,7 @@ export default function Home() {
     return () => cancelAnimationFrame(rafId);
   }, []);
 
-  // 카테고리 로드
+  // 카테고리 불러오기
   useEffect(() => {
     async function loadCategories() {
       const { data } = await supabase.from("food_categories").select("*");
@@ -129,15 +129,33 @@ export default function Home() {
     }
   }, []);
 
-  // 추천 검색
+  // 맛집 검색
   useEffect(() => {
     async function fetchPlaces() {
-      if (!location) return;
+      if (!location) {
+        console.error("위치 정보가 없습니다.");
+        setLoading(false);
+        setStep("finished");
+        return;
+      }
+
       setLoading(true);
       try {
         const queries = selectedFoods.join(",");
-        const params = new URLSearchParams({ keywords: queries, lat: location.lat.toString(), lng: location.lng.toString(), radius: "1000" });
+        const params = new URLSearchParams({
+          keywords: queries,
+          lat: location.lat.toString(),
+          lng: location.lng.toString(),
+          radius: "1000",
+        });
+
         const res = await fetch(`/api/search?${params}`);
+        if (!res.ok) {
+          console.error("맛집 검색 API 실패");
+          setStep("finished");
+          return;
+        }
+
         const { documents } = await res.json();
         const fetched: Place[] = documents.map((doc: any) => ({
           name: doc.place_name,
@@ -149,15 +167,18 @@ export default function Home() {
           lng: parseFloat(doc.x),
           category: doc.category_name || "",
         }));
-        if (fetched.length) {
+
+        if (fetched.length > 0) {
           setPlaces(fetched);
           setSelectedPlace(fetched[Math.floor(Math.random() * fetched.length)]);
           setUsedPlaces([]);
           setStep("recommend");
         } else {
+          console.warn("맛집이 검색되지 않았습니다.");
           setStep("finished");
         }
-      } catch {
+      } catch (error) {
+        console.error("맛집 검색 중 오류 발생:", error);
         setStep("finished");
       } finally {
         setLoading(false);
@@ -234,7 +255,7 @@ export default function Home() {
             )
           }
           onNext={handleSelectNext}
-          typeLabel={typeLabel} // ✅ 시간대별 문구 전달
+          typeLabel={typeLabel}
         />
       ) : step === "loading" || loading ? (
         <LoadingScreen />
