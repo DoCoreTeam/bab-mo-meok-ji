@@ -97,13 +97,11 @@ export default function Home() {
       if (data) {
         const mealType = getCurrentMealType();
         let filtered = data.filter(cat => cat.type === mealType);
-    
-        // ✅ 데이터가 비어있으면 fallback: 전체에서 랜덤으로
         if (filtered.length === 0) {
           console.warn(`[경고] ${mealType} 타입 음식이 부족합니다. 전체 데이터로 대체합니다.`);
           filtered = data;
         }
-    
+  
         const shuffle = <T,>(arr: T[]): T[] => {
           const a = [...arr];
           for (let i = a.length - 1; i > 0; i--) {
@@ -112,12 +110,16 @@ export default function Home() {
           }
           return a;
         };
-    
+  
         const shuffled = shuffle(filtered);
         setCategories(shuffled.slice(0, 10));
       }
     }
-    
+  
+    // ✅ 여기 추가!!!! (이걸 안 했던 거야)
+    if (step === "select") {
+      loadCategories();
+    }
   }, [step]);
 
   // 위치 가져오기
