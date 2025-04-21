@@ -1,4 +1,4 @@
-// DOCORE: 2025-04-20 17:20 PlaceCard children 필수 반영 완료 최종본
+// DOCORE: 2025-04-20 17:20 PlaceCard children 필수 반영 완료 최종본 + eslint 정리
 
 "use client";
 
@@ -33,6 +33,16 @@ export interface Place {
   lat: number;
   lng: number;
   category: string;
+}
+
+// Kakao 검색 결과 타입
+interface KakaoPlaceDocument {
+  id: string;
+  place_name: string;
+  address_name: string;
+  y: string;
+  x: string;
+  category_name?: string;
 }
 
 // 시간대별 타입
@@ -116,7 +126,6 @@ export default function Home() {
       }
     }
   
-    // ✅ 여기 추가!!!! (이걸 안 했던 거야)
     if (step === "select") {
       loadCategories();
     }
@@ -130,7 +139,7 @@ export default function Home() {
         () => setLocation({ lat: 37.5665, lng: 126.978 })
       );
     }
-  }, []);
+  }, [location]);
 
   // 맛집 검색
   useEffect(() => {
@@ -154,7 +163,7 @@ export default function Home() {
       try {
         const res = await fetch(`/api/search?${params}`);
         const { documents } = await res.json();
-        const fetched: Place[] = documents.map((doc: any) => ({
+        const fetched: Place[] = (documents as KakaoPlaceDocument[]).map((doc) => ({
           name: doc.place_name,
           kakaoName: doc.place_name,
           kakaoId: doc.id,
@@ -179,7 +188,7 @@ export default function Home() {
       }
     }
 
-    if (step === "search") {
+    if (step === "search" && location) {
       fetchPlaces();
     }
   }, [step, location, selectedFoods, categories]);
