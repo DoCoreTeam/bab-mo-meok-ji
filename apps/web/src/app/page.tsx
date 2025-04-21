@@ -201,6 +201,55 @@ export default function Home() {
     setStep("aiReview");
   };
 
+  // DOCORE: 2025-04-20 18:45 내 위치로 다시 맛집 검색하는 함수
+const handleRefreshPlaces = async () => {
+  if (!location) return;
+
+  setStep("loading");
+
+  const queries = selectedFoods
+    .map(slug => {
+      const cat = categories.find(c => c.eng_keyword === slug);
+      return cat?.kor_name || slug;
+    })
+    .join(",");
+
+  const params = new URLSearchParams({
+    keywords: queries,
+    lat: location.lat.toString(),
+    lng: location.lng.toString(),
+    radius: "1000",
+  });
+
+  try {
+    const res = await fetch(`/api/search?${params}`);
+    const { documents } = await res.json();
+    const fetched: Place[] = (documents as KakaoPlaceDocument[]).map((doc) => ({
+      name: doc.place_name,
+      kakaoName: doc.place_name,
+      kakaoId: doc.id,
+      rating: 0,
+      address: doc.address_name,
+      lat: parseFloat(doc.y),
+      lng: parseFloat(doc.x),
+      category: doc.category_name || "",
+    }));
+
+    if (fetched.length > 0) {
+      setPlaces(fetched);
+      setSelectedPlace(fetched[Math.floor(Math.random() * fetched.length)]);
+      setUsedPlaces([]);
+      setStep("recommend");
+    } else {
+      setStep("finished");
+    }
+  } catch (error) {
+    console.error("다시 검색 실패:", error);
+    setStep("finished");
+  }
+};
+
+
   const handleAcceptAiFoods = () => {
     const combined = [
       ...selectedFoods,
@@ -281,7 +330,21 @@ export default function Home() {
               <KakaoMap lat={selectedPlace.lat} lng={selectedPlace.lng} />
             </div>
           </PlaceCard>
-          <ActionButtons onAnother={handleAnotherRecommendation} onRestart={handleRestart} isFinished={false} />
+
+          {/* 기존 추천/다시 시작 버튼 */}
+          <ActionButtons
+            onAnother={handleAnotherRecommendation}
+            onRestart={handleRestart}
+            isFinished={false}
+          />
+
+          {/* 🔥 추가: 내 위치로 다시 검색 버튼 */}
+          <button
+            onClick={handleRefreshPlaces}
+            className="mt-2 px-6 py-3 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition transform active:scale-95 active:opacity-80"
+          >
+            🔄 내 위치로 다시 검색하기
+          </button>
         </div>
       ) : step === "finished" && selectedPlace ? (
         <div className="flex flex-col items-center space-y-4">
