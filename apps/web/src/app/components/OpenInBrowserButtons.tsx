@@ -3,17 +3,18 @@
 import { useState, useEffect } from "react";
 
 function isInAppBrowser() {
-  const ua = navigator.userAgent.toLowerCase();
-  return (
-    ua.includes("kakaotalk") ||
-    ua.includes("instagram") ||
-    ua.includes("facebook") ||
-    ua.includes("naver") ||
-    ua.includes("line") ||
-    ua.includes("whatsapp") ||
-    ua.includes("telegram")
-  );
-}
+    const ua = navigator.userAgent.toLowerCase();
+    return (
+      ua.includes("kakaotalk") ||
+      ua.includes("instagram") ||
+      ua.includes("facebook") ||
+      ua.includes("naver") ||
+      ua.includes("line") ||
+      ua.includes("whatsapp") ||
+      ua.includes("telegram")
+    );
+  }
+  
 
 export default function OpenInBrowserButtons() {
   const [shouldShow, setShouldShow] = useState(false);
