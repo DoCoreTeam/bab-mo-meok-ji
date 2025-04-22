@@ -1,35 +1,52 @@
-// DOCORE: 2025-04-20 22:00 메신저 내장 브라우저 문제 해결용, 외부 브라우저 열기 버튼 컴포넌트 최종본
-
+// OpenInBrowserButtons.tsx
 "use client";
 
-import React from "react";
+import { useState, useEffect } from "react";
 
-const openInChrome = () => {
-  const url = window.location.href;
-  const chromeUrl = `googlechrome://navigate?url=${url}`;
-  window.location.href = chromeUrl;
-};
-
-const openInSafari = () => {
-  const url = window.location.href;
-  window.open(url, "_blank");
-};
+function isInAppBrowser() {
+  const ua = navigator.userAgent.toLowerCase();
+  return (
+    ua.includes("kakaotalk") ||
+    ua.includes("instagram") ||
+    ua.includes("facebook") ||
+    ua.includes("naver")
+  );
+}
 
 export default function OpenInBrowserButtons() {
-  return (
-    <div className="flex flex-col space-y-3 mt-8">
-      <button
-        onClick={openInChrome}
-        className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition transform active:scale-95 active:opacity-80"
-      >
-        📱 크롬 앱으로 열기 (Android)
-      </button>
+  const [shouldShow, setShouldShow] = useState(false);
 
+  useEffect(() => {
+    if (isInAppBrowser()) {
+      setShouldShow(true);
+    }
+  }, []);
+
+  const openInDefaultBrowser = () => {
+    if (navigator.userAgent.toLowerCase().includes("iphone") || navigator.userAgent.toLowerCase().includes("ipad")) {
+      // 아이폰: 새 창 열기 (Universal Link)
+      window.open(window.location.href, "_blank");
+    } else {
+      // 안드로이드: intent:// 시도
+      const url = window.location.href.replace(/^https?:\/\//, '');
+      window.location.href = `intent://${url}#Intent;scheme=https;package=com.android.chrome;end`;
+    }
+
+    // 버튼 사라지게
+    setTimeout(() => {
+      setShouldShow(false);
+    }, 1000);
+  };
+
+  if (!shouldShow) return null;
+
+  return (
+    <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
       <button
-        onClick={openInSafari}
-        className="w-full py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition transform active:scale-95 active:opacity-80"
+        onClick={openInDefaultBrowser}
+        className="px-6 py-3 bg-black text-white text-sm rounded-full shadow-lg hover:bg-gray-800 transition"
       >
-        🍎 사파리 앱으로 열기 (iPhone)
+        기본 브라우저로 열기
       </button>
     </div>
   );

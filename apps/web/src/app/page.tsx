@@ -14,36 +14,8 @@ import KakaoMap from "@/app/components/Map/KakaoMap";
 import { supabase } from "@/lib/supabaseClient";
 import { fetchAdditionalRecommendations } from "@/lib/openai";
 import { useDislikeManager } from "@/app/hooks/useDislikeManager";
+import OpenInBrowserButtons from "@/app/components/OpenInBrowserButtons";
 
-function isInAppBrowser() {
-  const ua = navigator.userAgent.toLowerCase();
-  return (
-    ua.includes("kakaotalk") ||
-    ua.includes("instagram") ||
-    ua.includes("facebook") ||
-    ua.includes("naver")
-  );
-}
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function OpenInBrowserButtons() {
-  const openInDefaultBrowser = () => {
-    window.location.href = window.location.href;
-  };
-
-  if (!isInAppBrowser()) return null;
-
-  return (
-    <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
-      <button
-        onClick={openInDefaultBrowser}
-        className="px-6 py-3 bg-black text-white text-sm rounded-full shadow-lg hover:bg-gray-800 transition"
-      >
-        기본 브라우저로 열기
-      </button>
-    </div>
-  );
-}
 
 // 타입 정의
 export interface Category {
@@ -330,6 +302,7 @@ export default function Home() {
       ) : (
         <LoadingScreen />
       )}
+      <OpenInBrowserButtons />
     </Layout>
   );
 }
