@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import "./globals.css";
 import { GTM_ID } from "@/lib/gtm"; // ✅ 추가
+import OpenInBrowserButtons from "@/app/components/OpenInBrowserButtons"; // ✅ 추가
 
 export const metadata: Metadata = {
   title: "밥 뭐먹지?",
@@ -64,7 +65,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             ></iframe>
           </noscript>
         )}
-
+        {/* ✅ 여기 추가 */}
+        <OpenInBrowserButtons />
         {children}
       </body>
     </html>

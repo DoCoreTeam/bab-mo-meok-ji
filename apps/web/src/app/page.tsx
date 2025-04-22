@@ -14,6 +14,10 @@ import KakaoMap from "@/app/components/Map/KakaoMap";
 import { supabase } from "@/lib/supabaseClient";
 import { fetchAdditionalRecommendations } from "@/lib/openai";
 import { useDislikeManager } from "@/app/hooks/useDislikeManager";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import OpenInBrowserButtons from "@/app/components/OpenInBrowserButtons";
+
+
 
 // 타입 정의
 export interface Category {
