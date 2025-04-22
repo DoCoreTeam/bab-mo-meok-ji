@@ -1,4 +1,4 @@
-// DOCORE: 2025-04-21 10:40 카테고리 다시 뽑기 기능 추가 반영 최종본
+// DOCORE: 2025-04-20 19:20 PlaceCard children 필수 반영 완료 최종본 + eslint 정리 + 플로우 변경 (선택 → 맛집 → AI 추천) 적용 완료
 
 "use client";
 
@@ -15,6 +15,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { fetchAdditionalRecommendations } from "@/lib/openai";
 import { useDislikeManager } from "@/app/hooks/useDislikeManager";
 
+// 타입 정의
 export interface Category {
   id: number;
   kor_name: string;
@@ -46,15 +47,19 @@ interface KakaoPlaceDocument {
 function getCurrentMealType(): "meal" | "snack" | "alcohol" {
   const now = new Date();
   const hour = now.getHours();
-  if ((hour >= 7 && hour < 10) || (hour >= 11 && hour < 14) || (hour >= 17 && hour < 20)) return "meal";
-  if ((hour >= 10 && hour < 11) || (hour >= 14 && hour < 17)) return "snack";
+  if ((hour >= 7 && hour < 10) || (hour >= 11 && hour < 14) || (hour >= 17 && hour < 20)) {
+    return "meal";
+  }
+  if ((hour >= 10 && hour < 11) || (hour >= 14 && hour < 17)) {
+    return "snack";
+  }
   return "alcohol";
 }
 
 const typeLabel = {
-  meal: "\ud83c\udf7d\ufe0f 지금은 식사 추천 시간입니다!",
-  snack: "\ud83c\udf69 지금은 간식 추천 시간입니다!",
-  alcohol: "\ud83c\udf7b 지금은 술안주 추천 시간입니다!",
+  meal: "🍽️ 지금은 식사 추천 시간입니다!",
+  snack: "🍩 지금은 간식 추천 시간입니다!",
+  alcohol: "🍻 지금은 술안주 추천 시간입니다!",
 }[getCurrentMealType()];
 
 export default function Home() {
@@ -96,7 +101,10 @@ export default function Home() {
     if (data) {
       const mealType = getCurrentMealType();
       let filtered = data.filter(cat => cat.type === mealType);
-      if (filtered.length === 0) filtered = data;
+      if (filtered.length === 0) {
+        console.warn(`[경고] ${mealType} 타입 음식 부족`);
+        filtered = data;
+      }
       const shuffle = <T,>(arr: T[]): T[] => {
         const a = [...arr];
         for (let i = a.length - 1; i > 0; i--) {
@@ -105,8 +113,7 @@ export default function Home() {
         }
         return a;
       };
-      const shuffled = shuffle(filtered);
-      setCategories(shuffled.slice(0, 10));
+      setCategories(shuffle(filtered).slice(0, 10));
     }
   };
 
@@ -128,7 +135,9 @@ export default function Home() {
   useEffect(() => {
     async function fetchPlaces() {
       if (!location) return;
-      const queries = selectedFoods.map(slug => categories.find(c => c.eng_keyword === slug)?.kor_name || slug).join(",");
+      const queries = selectedFoods
+        .map(slug => categories.find(c => c.eng_keyword === slug)?.kor_name || slug)
+        .join(",");
       const params = new URLSearchParams({
         keywords: queries,
         lat: location.lat.toString(),
@@ -154,20 +163,27 @@ export default function Home() {
           setUsedPlaces([]);
           setStep("recommend");
         } else {
-          setStep("finished");
+          setStep("loading");
+          const aiRecommendations = await fetchAdditionalRecommendations(selectedFoods);
+          setAiFoods(aiRecommendations.slice(0, 2));
+          setStep("aiReview");
         }
-      } catch {
+      } catch (error) {
+        console.error("맛집 검색 실패", error);
         setStep("finished");
       }
     }
-    if (step === "search" && location) fetchPlaces();
+    if (step === "search" && location) {
+      fetchPlaces();
+    }
   }, [step, location, selectedFoods, categories]);
 
-  const handleSelectNext = async () => {
-    setStep("loading");
-    const aiRecommendations = await fetchAdditionalRecommendations(selectedFoods);
-    setAiFoods(aiRecommendations.slice(0, 2));
-    setStep("aiReview");
+  const handleSelectNext = () => {
+    if (selectedFoods.length === 0) {
+      alert("최소 1개 이상의 선호 음식을 선택해주세요!");
+      return;
+    }
+    setStep("search");
   };
 
   const handleAcceptAiFoods = () => {
@@ -193,7 +209,11 @@ export default function Home() {
       setSelectedPlace(next);
       setUsedPlaces(prev => [...prev, next]);
     } else {
-      setStep("finished");
+      setStep("loading");
+      fetchAdditionalRecommendations(selectedFoods).then(res => {
+        setAiFoods(res.slice(0, 2));
+        setStep("aiReview");
+      });
     }
   };
 
@@ -215,7 +235,9 @@ export default function Home() {
           categories={categories}
           selectedFoods={selectedFoods}
           onToggleFood={(food) =>
-            setSelectedFoods(prev => prev.includes(food) ? prev.filter(f => f !== food) : prev.length < 5 ? [...prev, food] : prev)
+            setSelectedFoods(prev =>
+              prev.includes(food) ? prev.filter(f => f !== food) : prev.length < 5 ? [...prev, food] : prev
+            )
           }
           onNext={handleSelectNext}
           onRefresh={loadCategories}
