@@ -1,4 +1,4 @@
-// DOCORE: 2025-04-20 19:20 PlaceCard children 필수 반영 완료 최종본 + eslint 정리 + 플로우 변경 (선택 → 맛집 → AI 추천, 싫어요 시 AI 추가 추천) 적용 완료
+// DOCORE: 2025-04-20 19:20 PlaceCard children 필수 반영 완료 최종본 + eslint 정리 + 플로우 변경 (선택 → 맛집 → AI 추천, 싫어요 시 AI 추가 추천) + "AI 추천 안내" 개선 적용 완료
 
 "use client";
 
@@ -68,7 +68,7 @@ export default function Home() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedFoods, setSelectedFoods] = useState<string[]>([]);
   const [aiFoods, setAiFoods] = useState<string[]>([]);
-  const [step, setStep] = useState<"splash" | "select" | "loading" | "aiReview" | "search" | "recommend" | "finished">("splash");
+  const [step, setStep] = useState<"splash" | "select" | "loading" | "aiReady" | "aiReview" | "search" | "recommend" | "finished">("splash");
   const [places, setPlaces] = useState<Place[]>([]);
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
   const [usedPlaces, setUsedPlaces] = useState<Place[]>([]);
@@ -163,10 +163,7 @@ export default function Home() {
           setUsedPlaces([]);
           setStep("recommend");
         } else {
-          setStep("loading");
-          const aiRecommendations = await fetchAdditionalRecommendations(selectedFoods);
-          setAiFoods(aiRecommendations.slice(0, 1));
-          setStep("aiReview");
+          setStep("aiReady");
         }
       } catch (error) {
         console.error("맛집 검색 실패", error);
@@ -215,11 +212,7 @@ export default function Home() {
       setSelectedPlace(next);
       setUsedPlaces(prev => [...prev, next]);
     } else {
-      setStep("loading");
-      fetchAdditionalRecommendations(selectedFoods).then(res => {
-        setAiFoods(res.slice(0, 1));
-        setStep("aiReview");
-      });
+      setStep("aiReady");
     }
   };
 
@@ -251,6 +244,11 @@ export default function Home() {
         />
       ) : step === "loading" ? (
         <LoadingScreen />
+      ) : step === "aiReady" ? (
+        <div className="flex flex-col items-center justify-center h-screen">
+          <p className="text-xl font-semibold mb-4">✨ 추천할 맛집이 없어요!</p>
+          <p className="text-gray-500">당신의 취향을 고려해 새로운 음식을 AI가 추천하고 있어요...</p>
+        </div>
       ) : step === "aiReview" ? (
         <AiAdditionalFoods
           aiFoods={aiFoods}
