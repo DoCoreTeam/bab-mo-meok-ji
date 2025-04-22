@@ -175,6 +175,19 @@ export default function Home() {
     }
   }, [step, location, selectedFoods, categories]);
 
+  // DOCORE: 2025-04-21 01:00 aiReady 시 자동으로 AI 추천 호출
+  useEffect(() => {
+    async function fetchAiRecommendation() {
+      const aiResult = await fetchAdditionalRecommendations(selectedFoods);
+      setAiFoods(aiResult.slice(0, 1)); // 하나만 추천
+      setStep("aiReview");
+    }
+
+    if (step === "aiReady") {
+      fetchAiRecommendation();
+    }
+  }, [step, selectedFoods]);
+
   const handleSelectNext = () => {
     if (selectedFoods.length === 0) {
       alert("최소 1개 이상의 선호 음식을 선택해주세요!");
