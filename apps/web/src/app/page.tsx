@@ -1,4 +1,4 @@
-// DOCORE: 2025-04-20 17:20 PlaceCard children 필수 반영 완료 최종본 + eslint 정리
+// DOCORE: 2025-04-21 10:40 카테고리 다시 뽑기 기능 추가 반영 최종본
 
 "use client";
 
@@ -15,7 +15,6 @@ import { supabase } from "@/lib/supabaseClient";
 import { fetchAdditionalRecommendations } from "@/lib/openai";
 import { useDislikeManager } from "@/app/hooks/useDislikeManager";
 
-// 타입 정의
 export interface Category {
   id: number;
   kor_name: string;
@@ -35,7 +34,6 @@ export interface Place {
   category: string;
 }
 
-// Kakao 검색 결과 타입
 interface KakaoPlaceDocument {
   id: string;
   place_name: string;
@@ -45,24 +43,18 @@ interface KakaoPlaceDocument {
   category_name?: string;
 }
 
-// 시간대별 타입
 function getCurrentMealType(): "meal" | "snack" | "alcohol" {
   const now = new Date();
   const hour = now.getHours();
-  if ((hour >= 7 && hour < 10) || (hour >= 11 && hour < 14) || (hour >= 17 && hour < 20)) {
-    return "meal";
-  }
-  if ((hour >= 10 && hour < 11) || (hour >= 14 && hour < 17)) {
-    return "snack";
-  }
+  if ((hour >= 7 && hour < 10) || (hour >= 11 && hour < 14) || (hour >= 17 && hour < 20)) return "meal";
+  if ((hour >= 10 && hour < 11) || (hour >= 14 && hour < 17)) return "snack";
   return "alcohol";
 }
 
-// 시간대별 문구
 const typeLabel = {
-  meal: "🍽️ 지금은 식사 추천 시간입니다!",
-  snack: "🍩 지금은 간식 추천 시간입니다!",
-  alcohol: "🍻 지금은 술안주 추천 시간입니다!",
+  meal: "\ud83c\udf7d\ufe0f 지금은 식사 추천 시간입니다!",
+  snack: "\ud83c\udf69 지금은 간식 추천 시간입니다!",
+  alcohol: "\ud83c\udf7b 지금은 술안주 추천 시간입니다!",
 }[getCurrentMealType()];
 
 export default function Home() {
@@ -79,7 +71,6 @@ export default function Home() {
 
   const { saveDislikedFood } = useDislikeManager();
 
-  // Splash
   useEffect(() => {
     const duration = 2000;
     const start = performance.now();
@@ -100,38 +91,31 @@ export default function Home() {
     return () => cancelAnimationFrame(rafId);
   }, []);
 
-  // 카테고리 불러오기
-  useEffect(() => {
-    async function loadCategories() {
-      const { data } = await supabase.from("food_categories").select("*");
-      if (data) {
-        const mealType = getCurrentMealType();
-        let filtered = data.filter(cat => cat.type === mealType);
-        if (filtered.length === 0) {
-          console.warn(`[경고] ${mealType} 타입 음식이 부족합니다. 전체 데이터로 대체합니다.`);
-          filtered = data;
+  const loadCategories = async () => {
+    const { data } = await supabase.from("food_categories").select("*");
+    if (data) {
+      const mealType = getCurrentMealType();
+      let filtered = data.filter(cat => cat.type === mealType);
+      if (filtered.length === 0) filtered = data;
+      const shuffle = <T,>(arr: T[]): T[] => {
+        const a = [...arr];
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [a[i], a[j]] = [a[j], a[i]];
         }
-  
-        const shuffle = <T,>(arr: T[]): T[] => {
-          const a = [...arr];
-          for (let i = a.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [a[i], a[j]] = [a[j], a[i]];
-          }
-          return a;
-        };
-  
-        const shuffled = shuffle(filtered);
-        setCategories(shuffled.slice(0, 10));
-      }
+        return a;
+      };
+      const shuffled = shuffle(filtered);
+      setCategories(shuffled.slice(0, 10));
     }
-  
+  };
+
+  useEffect(() => {
     if (step === "select") {
       loadCategories();
     }
   }, [step]);
 
-  // 위치 가져오기
   useEffect(() => {
     if (!location) {
       navigator.geolocation.getCurrentPosition(
@@ -141,29 +125,20 @@ export default function Home() {
     }
   }, [location]);
 
-  // 맛집 검색
   useEffect(() => {
     async function fetchPlaces() {
       if (!location) return;
-
-      const queries = selectedFoods
-        .map(slug => {
-          const cat = categories.find(c => c.eng_keyword === slug);
-          return cat?.kor_name || slug;
-        })
-        .join(",");
-
+      const queries = selectedFoods.map(slug => categories.find(c => c.eng_keyword === slug)?.kor_name || slug).join(",");
       const params = new URLSearchParams({
         keywords: queries,
         lat: location.lat.toString(),
         lng: location.lng.toString(),
         radius: "1000",
       });
-
       try {
         const res = await fetch(`/api/search?${params}`);
         const { documents } = await res.json();
-        const fetched: Place[] = (documents as KakaoPlaceDocument[]).map((doc) => ({
+        const fetched: Place[] = (documents as KakaoPlaceDocument[]).map(doc => ({
           name: doc.place_name,
           kakaoName: doc.place_name,
           kakaoId: doc.id,
@@ -173,7 +148,6 @@ export default function Home() {
           lng: parseFloat(doc.x),
           category: doc.category_name || "",
         }));
-
         if (fetched.length > 0) {
           setPlaces(fetched);
           setSelectedPlace(fetched[Math.floor(Math.random() * fetched.length)]);
@@ -182,18 +156,13 @@ export default function Home() {
         } else {
           setStep("finished");
         }
-      } catch (error) {
-        console.error("맛집 검색 실패:", error);
+      } catch {
         setStep("finished");
       }
     }
-
-    if (step === "search" && location) {
-      fetchPlaces();
-    }
+    if (step === "search" && location) fetchPlaces();
   }, [step, location, selectedFoods, categories]);
 
-  // 핸들러
   const handleSelectNext = async () => {
     setStep("loading");
     const aiRecommendations = await fetchAdditionalRecommendations(selectedFoods);
@@ -201,60 +170,8 @@ export default function Home() {
     setStep("aiReview");
   };
 
-  // DOCORE: 2025-04-20 18:45 내 위치로 다시 맛집 검색하는 함수
-const handleRefreshPlaces = async () => {
-  if (!location) return;
-
-  setStep("loading");
-
-  const queries = selectedFoods
-    .map(slug => {
-      const cat = categories.find(c => c.eng_keyword === slug);
-      return cat?.kor_name || slug;
-    })
-    .join(",");
-
-  const params = new URLSearchParams({
-    keywords: queries,
-    lat: location.lat.toString(),
-    lng: location.lng.toString(),
-    radius: "1000",
-  });
-
-  try {
-    const res = await fetch(`/api/search?${params}`);
-    const { documents } = await res.json();
-    const fetched: Place[] = (documents as KakaoPlaceDocument[]).map((doc) => ({
-      name: doc.place_name,
-      kakaoName: doc.place_name,
-      kakaoId: doc.id,
-      rating: 0,
-      address: doc.address_name,
-      lat: parseFloat(doc.y),
-      lng: parseFloat(doc.x),
-      category: doc.category_name || "",
-    }));
-
-    if (fetched.length > 0) {
-      setPlaces(fetched);
-      setSelectedPlace(fetched[Math.floor(Math.random() * fetched.length)]);
-      setUsedPlaces([]);
-      setStep("recommend");
-    } else {
-      setStep("finished");
-    }
-  } catch (error) {
-    console.error("다시 검색 실패:", error);
-    setStep("finished");
-  }
-};
-
-
   const handleAcceptAiFoods = () => {
-    const combined = [
-      ...selectedFoods,
-      ...aiFoods.map(f => f.toLowerCase().replace(/\s+/g, "-")),
-    ];
+    const combined = [...selectedFoods, ...aiFoods.map(f => f.toLowerCase().replace(/\s+/g, "-"))];
     setSelectedFoods(combined);
     setAiFoods([]);
     setStep("search");
@@ -289,7 +206,6 @@ const handleRefreshPlaces = async () => {
     setStep("select");
   };
 
-  // 화면 렌더링
   return (
     <Layout>
       {showSplash ? (
@@ -299,15 +215,10 @@ const handleRefreshPlaces = async () => {
           categories={categories}
           selectedFoods={selectedFoods}
           onToggleFood={(food) =>
-            setSelectedFoods(prev =>
-              prev.includes(food)
-                ? prev.filter(f => f !== food)
-                : prev.length < 5
-                ? [...prev, food]
-                : prev
-            )
+            setSelectedFoods(prev => prev.includes(food) ? prev.filter(f => f !== food) : prev.length < 5 ? [...prev, food] : prev)
           }
           onNext={handleSelectNext}
+          onRefresh={loadCategories}
           typeLabel={typeLabel}
         />
       ) : step === "loading" ? (
@@ -330,21 +241,7 @@ const handleRefreshPlaces = async () => {
               <KakaoMap lat={selectedPlace.lat} lng={selectedPlace.lng} />
             </div>
           </PlaceCard>
-
-          {/* 기존 추천/다시 시작 버튼 */}
-          <ActionButtons
-            onAnother={handleAnotherRecommendation}
-            onRestart={handleRestart}
-            isFinished={false}
-          />
-
-          {/* 🔥 추가: 내 위치로 다시 검색 버튼 */}
-          <button
-            onClick={handleRefreshPlaces}
-            className="mt-2 px-6 py-3 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition transform active:scale-95 active:opacity-80"
-          >
-            🔄 내 위치로 다시 검색하기
-          </button>
+          <ActionButtons onAnother={handleAnotherRecommendation} onRestart={handleRestart} isFinished={false} />
         </div>
       ) : step === "finished" && selectedPlace ? (
         <div className="flex flex-col items-center space-y-4">

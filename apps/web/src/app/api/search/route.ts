@@ -14,6 +14,7 @@ export async function GET(request: Request) {
   }
 
   const keywords = keywordsParam.split(",").map(k => k.trim()).filter(Boolean);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let allDocs: any[] = [];
 
   for (const kw of keywords) {

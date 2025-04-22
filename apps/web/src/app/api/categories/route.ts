@@ -46,6 +46,7 @@ export async function GET() {
     }));
 
     return NextResponse.json({ categories });
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (e) {
     return NextResponse.json(
       { error: "외부 카테고리 API 호출 실패" },

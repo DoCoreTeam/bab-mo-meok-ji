@@ -1,16 +1,16 @@
-// DOCORE: 2025-04-20 15:50 SelectFavoriteFoods 컴포넌트 (typeLabel 추가 반영)
+// apps/web/src/app/components/SelectFavoriteFoods.tsx
 
 "use client";
 
 import { Category } from "@/app/page";
-import { CategoryButton } from "@/app/components/CategoryButton";
 
 interface SelectFavoriteFoodsProps {
   categories: Category[];
   selectedFoods: string[];
   onToggleFood: (food: string) => void;
-  onNext: () => Promise<void>;
-  typeLabel: string; // ✅ 추가: 어떤 타입(식사/간식/술안주) 추천 중인지 표시
+  onNext: () => void;
+  onRefresh: () => void; // ✨ 추가
+  typeLabel: string;
 }
 
 export default function SelectFavoriteFoods({
@@ -18,33 +18,47 @@ export default function SelectFavoriteFoods({
   selectedFoods,
   onToggleFood,
   onNext,
+  onRefresh, // ✨ 추가
   typeLabel,
 }: SelectFavoriteFoodsProps) {
   return (
-    <div className="w-full max-w-md mx-auto p-4 bg-[var(--background)] text-[var(--foreground)] rounded-lg shadow transition-colors flex flex-col items-center">
-      {/* ✅ 타입별 추천 문구 표시 */}
-      <h2 className="text-center text-lg font-semibold mb-2">{typeLabel}</h2>
-      
-      <p className="text-center text-xl font-bold mb-2">오늘은 뭐 먹을까요? (구글 별점 3 이상 추천)</p>
-      <p className="text-center mb-4">좋아하는 음식을 선택하세요 (최대 5개)</p>
+    <div className="w-full max-w-md mx-auto bg-white p-6 rounded-lg shadow-md">
+      <p className="text-center mb-2 text-lg font-semibold">{typeLabel}</p>
+      <p className="text-center mb-4 text-gray-700">좋아하는 음식을 최대 5개 선택하세요!</p>
 
+      {/* 음식 리스트 */}
       <div className="grid grid-cols-2 gap-4 mb-6">
-        {categories.map(cat => (
-          <CategoryButton
+        {categories.map((cat) => (
+          <button
             key={cat.id}
-            label={cat.kor_name}
-            selected={selectedFoods.includes(cat.eng_keyword)}
+            className={`px-4 py-2 rounded-lg border ${
+              selectedFoods.includes(cat.eng_keyword)
+                ? "bg-indigo-500 text-white"
+                : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+            }`}
             onClick={() => onToggleFood(cat.eng_keyword)}
-          />
+          >
+            {cat.kor_name}
+          </button>
         ))}
       </div>
 
-      <button
-        className="w-full py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition transform active:scale-95 active:opacity-80"
-        onClick={onNext}
-      >
-        선택 완료
-      </button>
+      {/* 버튼 */}
+      <div className="flex flex-col gap-3">
+        <button
+          onClick={onNext}
+          className="w-full py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition transform active:scale-95 active:opacity-80"
+        >
+          선택 완료
+        </button>
+
+        <button
+          onClick={onRefresh} // ✨ 새로고침 버튼
+          className="w-full py-3 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 transition transform active:scale-95 active:opacity-80"
+        >
+          🔄 다른 음식 추천받기
+        </button>
+      </div>
     </div>
   );
 }
