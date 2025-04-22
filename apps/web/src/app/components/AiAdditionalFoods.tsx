@@ -3,49 +3,46 @@
 "use client";
 
 import React from "react";
-import { CategoryButton } from "@/app/components/CategoryButton";
 
-interface AiAdditionalFoodsProps {
-  aiFoods: string[];               // AI가 추천한 음식 이름 배열
-  onAccept: () => void;             // 좋아요 눌렀을 때 호출
-  onReject: () => void;             // 싫어요 눌렀을 때 호출
-}
 
+// DOCORE: 2025-04-21 10:30 AI 추천 음식 화면 리뉴얼 최종 적용
 export default function AiAdditionalFoods({
   aiFoods,
   onAccept,
   onReject,
-}: AiAdditionalFoodsProps) {
-  return (
-    <div className="w-full max-w-md mx-auto p-4 bg-[var(--background)] text-[var(--foreground)] rounded-lg shadow transition-colors flex flex-col items-center">
-      <h2 className="text-center text-2xl font-bold mb-6">
-        🤖 맛집 추천을 완료 했어요 AI가 추천한 음식으로 다시 탐색할까요?
-      </h2>
+}: {
+  aiFoods: string[];
+  onAccept: () => void;
+  onReject: () => void;
+}) {
+  if (aiFoods.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full">
+        <p className="text-lg font-semibold">추천할 음식이 없습니다.</p>
+      </div>
+    );
+  }
 
-      <div className="grid grid-cols-2 gap-4 mb-8">
-        {aiFoods.map((food, idx) => (
-          <CategoryButton
-            key={idx}
-            label={food}
-            selected={false}
-            onClick={() => {}}
-          />
-        ))}
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen px-6 text-center">
+      <h2 className="text-2xl font-bold mb-6 text-indigo-600">🤖 AI 추천 음식</h2>
+
+      <div className="bg-white rounded-2xl shadow-md p-6 w-full max-w-sm mb-8">
+        <p className="text-xl font-semibold text-gray-800">{aiFoods[0]}</p>
       </div>
 
-      <div className="flex justify-center gap-5 mt-8">
+      <div className="flex gap-4 w-full max-w-sm">
         <button
           onClick={onAccept}
-          className="px-6 py-3 rounded-2xl bg-indigo-500 text-white text-base font-semibold shadow hover:bg-indigo-600 hover:shadow-md transition-all duration-200 transform hover:-translate-y-0.5 active:scale-95"
+          className="flex-1 py-3 rounded-xl bg-indigo-500 text-white hover:bg-indigo-600 transition transform active:scale-95"
         >
           좋아요 👍
         </button>
-
         <button
           onClick={onReject}
-          className="px-6 py-3 rounded-2xl bg-rose-400 text-white text-base font-semibold shadow hover:bg-rose-500 hover:shadow-md transition-all duration-200 transform hover:-translate-y-0.5 active:scale-95"
+          className="flex-1 py-3 rounded-xl bg-gray-300 text-gray-700 hover:bg-gray-400 transition transform active:scale-95"
         >
-          싫어요 👎
+          다른 거 추천 👎
         </button>
       </div>
     </div>
