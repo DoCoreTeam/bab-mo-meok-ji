@@ -19,7 +19,7 @@ export default function AiAdditionalFoods({
   return (
     <div className="w-full max-w-md mx-auto p-4 bg-[var(--background)] text-[var(--foreground)] rounded-lg shadow transition-colors flex flex-col items-center">
       <h2 className="text-center text-2xl font-bold mb-6">
-        🤖 AI가 이런 음식도 추천했어요!
+        🤖 맛집 추천을 완료 했어요 AI가 추천한 음식으로 다시 탐색할까요?
       </h2>
 
       <div className="grid grid-cols-2 gap-4 mb-8">

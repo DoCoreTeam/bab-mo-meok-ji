@@ -1,4 +1,4 @@
-// DOCORE: 2025-04-20 19:20 PlaceCard children 필수 반영 완료 최종본 + eslint 정리 + 플로우 변경 (선택 → 맛집 → AI 추천) 적용 완료
+// DOCORE: 2025-04-20 19:20 PlaceCard children 필수 반영 완료 최종본 + eslint 정리 + 플로우 변경 (선택 → 맛집 → AI 추천, 싫어요 시 AI 추가 추천) 적용 완료
 
 "use client";
 
@@ -165,7 +165,7 @@ export default function Home() {
         } else {
           setStep("loading");
           const aiRecommendations = await fetchAdditionalRecommendations(selectedFoods);
-          setAiFoods(aiRecommendations.slice(0, 2));
+          setAiFoods(aiRecommendations.slice(0, 1));
           setStep("aiReview");
         }
       } catch (error) {
@@ -193,13 +193,19 @@ export default function Home() {
     setStep("search");
   };
 
-  const handleRejectAiFoods = () => {
-    aiFoods.forEach(food => {
-      const slug = food.toLowerCase().replace(/\s+/g, "-");
-      saveDislikedFood(slug);
-    });
-    setAiFoods([]);
-    setStep("search");
+  const handleRejectAiFoods = async () => {
+    if (aiFoods.length === 0) {
+      setStep("finished");
+      return;
+    }
+    const disliked = aiFoods[0];
+    const slug = disliked.toLowerCase().replace(/\s+/g, "-");
+    saveDislikedFood(slug);
+
+    setStep("loading");
+    const newAiFoods = await fetchAdditionalRecommendations(selectedFoods);
+    setAiFoods(newAiFoods.slice(0, 1));
+    setStep("aiReview");
   };
 
   const handleAnotherRecommendation = () => {
@@ -211,7 +217,7 @@ export default function Home() {
     } else {
       setStep("loading");
       fetchAdditionalRecommendations(selectedFoods).then(res => {
-        setAiFoods(res.slice(0, 2));
+        setAiFoods(res.slice(0, 1));
         setStep("aiReview");
       });
     }
