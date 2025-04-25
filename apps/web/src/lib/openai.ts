@@ -21,7 +21,7 @@ export async function fetchAdditionalRecommendations(selectedFoods: string[]): P
         messages: [
           {
             role: "system",
-            content: "당신은 음식 추천 전문가입니다. 사용자가 좋아할 만한 비슷한 음식을 5개 추천해주세요. 결과는 음식 이름만 콤마로 구분해서 주세요.",
+            content: "다음 음식들: [국밥, 돈까스, 햄버거]을 이미 골랐고,이 음식들과 완전히 같지는 않지만 비슷한 취향의 사람들이 좋아할 만한 다른 음식을 1개 추천해줘.절대로 중복되면 안돼.",
           },
           {
             role: "user",
@@ -34,6 +34,7 @@ export async function fetchAdditionalRecommendations(selectedFoods: string[]): P
   
     const data = await response.json();
     const aiText = data.choices?.[0]?.message?.content ?? "";
+
   
     return aiText.split(",").map((item: string) => item.trim());
   }

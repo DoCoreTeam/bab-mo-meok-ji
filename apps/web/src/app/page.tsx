@@ -159,14 +159,20 @@ export default function Home() {
           lng: parseFloat(doc.x),
           category: doc.category_name || "",
         }));
-        if (fetched.length > 0) {
-          setPlaces(fetched);
-          setSelectedPlace(fetched[Math.floor(Math.random() * fetched.length)]);
-          setUsedPlaces([]);
-          setStep("recommend");
-        } else {
-          setStep("aiReady");
-        }
+        // 🔥 fetched에서 이미 본 가게는 제외시킨다
+      const filteredFetched = fetched.filter(place => 
+      !usedPlaces.some(used => used.kakaoId === place.kakaoId)
+      );
+
+      // 🔥 그리고 filteredFetched를 기준으로 추천
+      if (filteredFetched.length > 0) {
+        setPlaces(filteredFetched);
+        setSelectedPlace(filteredFetched[Math.floor(Math.random() * filteredFetched.length)]);
+        setUsedPlaces(prev => [...prev, ...filteredFetched]); // 본 가게 누적 저장
+        setStep("recommend");
+      } else {
+        setStep("aiReady");
+      }
       } catch (error) {
         console.error("맛집 검색 실패", error);
         setStep("finished");
@@ -175,7 +181,7 @@ export default function Home() {
     if (step === "search" && location) {
       fetchPlaces();
     }
-  }, [step, location, selectedFoods, categories]);
+  }, [step, location, selectedFoods, categories, usedPlaces]);
 
   // DOCORE: 2025-04-21 01:00 aiReady 시 자동으로 AI 추천 호출
   useEffect(() => {
