@@ -11,6 +11,7 @@ export async function GET(req: Request) {
   }
 
   try {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const kakaoApiKey = process.env.NEXT_PUBLIC_KAKAO_REST_API_KEY;
 
     const { data } = await axios.get(`https://place.map.kakao.com/main/v/${kakaoId}`, {
