@@ -160,15 +160,17 @@ export default function Home() {
           category: doc.category_name || "",
         }));
         // 🔥 fetched에서 이미 본 가게는 제외시킨다
-      const filteredFetched = fetched.filter(place => 
-      !usedPlaces.some(used => used.kakaoId === place.kakaoId)
-      );
+        const filteredFetched = fetched.filter(place => 
+        !usedPlaces.some(used => used.kakaoId === place.kakaoId)
+        );
 
       // 🔥 그리고 filteredFetched를 기준으로 추천
       if (filteredFetched.length > 0) {
         setPlaces(filteredFetched);
-        setSelectedPlace(filteredFetched[Math.floor(Math.random() * filteredFetched.length)]);
-        setUsedPlaces(prev => [...prev, ...filteredFetched]); // 본 가게 누적 저장
+        setSelectedPlace(null);
+        setUsedPlaces([]); // 본 가게 누적 저장
+        // setSelectedPlace(filteredFetched[Math.floor(Math.random() * filteredFetched.length)]);
+        // setUsedPlaces(prev => [...prev, ...filteredFetched]); // 본 가게 누적 저장
         setStep("recommend");
       } else {
         setStep("aiReady");
