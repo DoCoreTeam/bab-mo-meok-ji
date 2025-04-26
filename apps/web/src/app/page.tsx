@@ -269,8 +269,8 @@ export default function Home() {
         <div className="flex flex-col items-center justify-center h-screen space-y-6">
         <div className="w-16 h-16 border-4 border-gray-300 border-t-indigo-600 rounded-full animate-spin"></div>
         <div className="text-center">
-          <p className="text-xl font-semibold mb-2">✨ 추천할 맛집이 없어요!</p>
-          <p className="text-gray-500">당신의 취향을 고려해 새로운 음식을 AI가 추천하고 있어요...</p>
+          <p className="text-xl font-semibold mb-2">✨ 다른게 땡기는군요?!</p>
+          <p className="text-gray-500">당신의 취향을 고려해 AI가 음식을 추천하고 있어요...</p>
         </div>
         </div>
       ) : step === "aiReview" ? (
