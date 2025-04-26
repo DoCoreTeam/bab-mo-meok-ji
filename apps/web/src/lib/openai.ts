@@ -21,7 +21,7 @@ export async function fetchAdditionalRecommendations(selectedFoods: string[]): P
         messages: [
           {
             role: "system",
-            content: "다음 음식들: [국밥, 돈까스, 햄버거]을 이미 골랐고,이 음식들과 완전히 같지는 않지만 비슷한 취향의 사람들이 좋아할 만한 다른 음식을 1개 추천해줘.절대로 중복되면 안돼. 그리고 답을 줄때는 음식이름만 줘",
+            content: "다음 음식들: [국밥, 돈까스, 햄버거]을 이미 골랐고,이 음식들과 완전히 같지는 않지만 비슷한 취향의 사람들이 좋아할 만한 다른 음식을 1개 추천해줘.절대로 중복되면 안돼. 그리고 답을 줄때는 음식이름만 주고 문장으로 주지마.",
           },
           {
             role: "user",
