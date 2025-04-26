@@ -167,10 +167,10 @@ export default function Home() {
       // 🔥 그리고 filteredFetched를 기준으로 추천
       if (filteredFetched.length > 0) {
         setPlaces(filteredFetched);
-        setSelectedPlace(null);
-        setUsedPlaces([]); // 본 가게 누적 저장
-        // setSelectedPlace(filteredFetched[Math.floor(Math.random() * filteredFetched.length)]);
-        // setUsedPlaces(prev => [...prev, ...filteredFetched]); // 본 가게 누적 저장
+        // setSelectedPlace(null);
+        // setUsedPlaces([]); // 본 가게 누적 저장
+        setSelectedPlace(filteredFetched[Math.floor(Math.random() * filteredFetched.length)]);
+        setUsedPlaces(prev => [...prev, ...filteredFetched]); // 본 가게 누적 저장
         setStep("recommend");
       } else {
         setStep("aiReady");
