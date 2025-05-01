@@ -11,8 +11,7 @@ import LoadingScreen from "@/app/components/LoadingScreen";
 import PlaceCard from "@/app/components/PlaceCard";
 import ActionButtons from "@/app/components/ActionButtons";
 import KakaoMap from "@/app/components/Map/KakaoMap";
-import { supabase } from "@/lib/supabaseClient";
-import { fetchAdditionalRecommendations } from "@/lib/openai";
+import { fetchAdditionalRecommendations, fetchInitialCategorySuggestions } from "@/lib/openai";
 import { useDislikeManager } from "@/app/hooks/useDislikeManager";
 import OpenInBrowserButtons from "@/app/components/OpenInBrowserButtons";
 import { getWeatherSensitiveFilters, useWeather } from "@/app/hooks/weatherFetcher";
@@ -105,19 +104,19 @@ export default function Home() {
   }, []);
 
   const loadCategories = async () => {
-    const { data } = await supabase.from("food_categories").select("*");
-    if (data) {
-      const mealType = getCurrentMealType();
-      let filtered = data.filter(cat => cat.type === mealType);
+    const mealType = getCurrentMealType();
+    const weatherFilters = getWeatherSensitiveFilters(weather); // 날씨 기반 비선호 항목
   
-      if (filtered.length === 0) {
-        console.warn(`[경고] ${mealType} 타입 음식 부족`);
-        filtered = data;
-      }
+    try {
+      const aiResult = await fetchInitialCategorySuggestions(mealType); // OpenAI에서 카테고리 추천 받기
   
-      // ✅ [추가] 날씨 기반 비선호 필터링
-      const weatherFilters = getWeatherSensitiveFilters(weather);
-      filtered = filtered.filter(cat => !weatherFilters.includes(cat.kor_name));
+      const filtered = aiResult
+        .map((kor_name, idx) => ({
+          id: 10000 + idx, // 가짜 ID 생성
+          kor_name,
+          eng_keyword: kor_name.toLowerCase().replace(/\s+/g, "-"),
+        }))
+        .filter(cat => !weatherFilters.includes(cat.kor_name)); // 날씨 필터 적용
   
       const shuffle = <T,>(arr: T[]): T[] => {
         const a = [...arr];
@@ -128,7 +127,9 @@ export default function Home() {
         return a;
       };
   
-      setCategories(shuffle(filtered).slice(0, 10));
+      setCategories(shuffle(filtered).slice(0, 10) as Category[]);
+    } catch (error) {
+      console.error("⚠️ AI 카테고리 추천 실패:", error);
     }
   };
 

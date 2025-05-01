@@ -46,3 +46,34 @@ export async function fetchAdditionalRecommendations(
     .map((item: string) => item.trim())
     .filter(Boolean);
 }
+
+export async function fetchInitialCategorySuggestions(mealType: string): Promise<string[]> {
+  const apiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY;
+  if (!apiKey) throw new Error("OpenAI API 키가 없습니다.");
+
+  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: "gpt-4",
+      messages: [
+        {
+          role: "system",
+          content: "당신은 사용자의 상황에 맞는 한식 메뉴 카테고리를 추천하는 AI입니다. 추천할 수 있는 음식 이름을 1줄에 1개씩 20개만 제시해주세요. 형식은 순수한 음식 이름만, 쉼표 없이.",
+        },
+        {
+          role: "user",
+          content: `현재 시간대: ${mealType} 시간대입니다. 이 시간에 어울리는 음식 추천해주세요.`,
+        },
+      ],
+      temperature: 0.7,
+    }),
+  });
+
+  const data = await res.json();
+  const text: string = data.choices?.[0]?.message?.content ?? "";
+  return text.split("\n").map(line => line.trim()).filter(Boolean);
+}
