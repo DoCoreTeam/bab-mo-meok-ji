@@ -26,6 +26,7 @@ export function useDislikeManager() {
   }, []);
 
   
+  
 
   return {
     saveDislikedFood,
@@ -43,6 +44,7 @@ if (typeof window !== "undefined") {
       const oneWeek = 7 * 24 * 60 * 60 * 1000;
   
       const validDislikes = Object.entries(dislikes)
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         .filter(([_, timestamp]) => typeof timestamp === "number" && now - timestamp < oneWeek)
         .map(([food]) => food);
   

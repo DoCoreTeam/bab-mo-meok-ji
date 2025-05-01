@@ -186,17 +186,41 @@ export default function Home() {
   }, [step, location, selectedFoods, categories, usedPlaces]);
 
   // DOCORE: 2025-04-21 01:00 aiReady 시 자동으로 AI 추천 호출
-  useEffect(() => {
-    async function fetchAiRecommendation() {
-      const aiResult = await fetchAdditionalRecommendations(selectedFoods);
-      setAiFoods(aiResult.slice(0, 1)); // 하나만 추천
-      setStep("aiReview");
+  // AI 추천 로직 useEffect 수정
+useEffect(() => {
+  async function fetchAiRecommendation() {
+    const aiResult = await fetchAdditionalRecommendations(selectedFoods);
+    const allDisliked = getAllDislikedFoods();
+
+    const filtered = aiResult.filter(food => {
+      const slug = food.toLowerCase().replace(/\s+/g, "-");
+      return !allDisliked.includes(slug);
+    });
+
+    if (filtered.length === 0) {
+      setStep("finished");
+      return;
     }
 
-    if (step === "aiReady") {
-      fetchAiRecommendation();
+    setAiFoods(filtered.slice(0, 1));
+    setStep("aiReview");
+  }
+
+  if (step === "aiReady") {
+    fetchAiRecommendation();
+  }
+}, [step, selectedFoods]);
+
+// DOCORE: 2025-04-21 01:40 싫어요 음식 전체 목록 가져오기 함수 추가
+  function getAllDislikedFoods(): string[] {
+    try {
+      const raw = localStorage.getItem("dislikedFoods") || "{}";
+      const parsed = JSON.parse(raw);
+      return Object.keys(parsed);
+    } catch {
+      return [];
     }
-  }, [step, selectedFoods]);
+  }
 
   const handleSelectNext = () => {
     if (selectedFoods.length === 0) {
