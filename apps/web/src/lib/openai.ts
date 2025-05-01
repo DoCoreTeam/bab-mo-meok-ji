@@ -1,6 +1,9 @@
 // src/lib/openai.ts
 // DOCORE: OpenAI API를 통해 사용자 선호도를 기반으로 음식 추천 호출
 
+import { Category } from "@/app/page"; // Category 타입을 재사용
+
+
 export async function fetchAdditionalRecommendations(
   selectedFoods: string[],
   dislikedFoods: string[]
@@ -76,4 +79,68 @@ export async function fetchInitialCategorySuggestions(mealType: string): Promise
   const data = await res.json();
   const text: string = data.choices?.[0]?.message?.content ?? "";
   return text.split("\n").map(line => line.trim()).filter(Boolean);
+}
+
+export async function fetchInitialCategoryJsonSuggestions(params: {
+  mealType: "meal" | "snack" | "alcohol";
+  weatherDescription?: string;
+  lat?: number;
+  lng?: number;
+}): Promise<Category[]> {
+  const { mealType, weatherDescription, lat, lng } = params;
+
+  const apiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY;
+  if (!apiKey) {
+    console.error("❌ OpenAI API 키가 없습니다.");
+    return [];
+  }
+
+  const systemPrompt = `
+당신은 사용자에게 현재 상황에 맞는 한국 음식 카테고리를 추천하는 AI입니다.
+- 반드시 JSON 배열만 반환하세요.
+- 각 항목은 { kor_name: string, eng_keyword: string, type: "meal" | "snack" | "alcohol" } 형식입니다.
+- 중복 없이 10개의 다양한 카테고리를 추천하세요.
+`;
+
+  const userPrompt = `
+[조건]
+- 시간대: ${mealType}
+- 날씨: ${weatherDescription ?? "정보 없음"}
+- 위도: ${lat ?? "정보 없음"}
+- 경도: ${lng ?? "정보 없음"}
+
+[예시 응답]
+[
+  { "kor_name": "김치찌개", "eng_keyword": "kimchi-jjigae", "type": "meal" },
+  { "kor_name": "비빔밥", "eng_keyword": "bibimbap", "type": "meal" }
+]
+`;
+
+  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: "gpt-4",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+      temperature: 0.7,
+    }),
+  });
+
+  const data = await res.json();
+  const raw = data.choices?.[0]?.message?.content ?? "";
+
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) throw new Error("AI 응답이 배열이 아님");
+    return parsed;
+  } catch (err) {
+    console.warn("❌ JSON 파싱 실패:", err);
+    return [];
+  }
 }

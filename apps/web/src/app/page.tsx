@@ -11,7 +11,8 @@ import LoadingScreen from "@/app/components/LoadingScreen";
 import PlaceCard from "@/app/components/PlaceCard";
 import ActionButtons from "@/app/components/ActionButtons";
 import KakaoMap from "@/app/components/Map/KakaoMap";
-import { fetchAdditionalRecommendations, fetchInitialCategorySuggestions } from "@/lib/openai";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import { fetchAdditionalRecommendations, fetchInitialCategorySuggestions, fetchInitialCategoryJsonSuggestions} from "@/lib/openai";
 import { useDislikeManager } from "@/app/hooks/useDislikeManager";
 import OpenInBrowserButtons from "@/app/components/OpenInBrowserButtons";
 import { getWeatherSensitiveFilters, useWeather } from "@/app/hooks/weatherFetcher";
@@ -105,32 +106,29 @@ export default function Home() {
 
   const loadCategories = async () => {
     const mealType = getCurrentMealType();
-    const weatherFilters = getWeatherSensitiveFilters(weather); // 날씨 기반 비선호 항목
   
-    try {
-      const aiResult = await fetchInitialCategorySuggestions(mealType); // OpenAI에서 카테고리 추천 받기
+    const aiSuggestions = await fetchInitialCategoryJsonSuggestions({
+      mealType,
+      weatherDescription: weather?.description,
+      lat: location?.lat,
+      lng: location?.lng,
+    });
   
-      const filtered = aiResult
-        .map((kor_name, idx) => ({
-          id: 10000 + idx, // 가짜 ID 생성
-          kor_name,
-          eng_keyword: kor_name.toLowerCase().replace(/\s+/g, "-"),
-        }))
-        .filter(cat => !weatherFilters.includes(cat.kor_name)); // 날씨 필터 적용
+    const weatherFilters = getWeatherSensitiveFilters(weather);
+    const filtered = aiSuggestions.filter(
+      (cat) => !weatherFilters.includes(cat.kor_name)
+    );
   
-      const shuffle = <T,>(arr: T[]): T[] => {
-        const a = [...arr];
-        for (let i = a.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [a[i], a[j]] = [a[j], a[i]];
-        }
-        return a;
-      };
+    const shuffle = <T,>(arr: T[]): T[] => {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    };
   
-      setCategories(shuffle(filtered).slice(0, 10) as Category[]);
-    } catch (error) {
-      console.error("⚠️ AI 카테고리 추천 실패:", error);
-    }
+    setCategories(shuffle(filtered).slice(0, 10));
   };
 
   useEffect(() => {
@@ -153,8 +151,11 @@ export default function Home() {
     async function fetchPlaces() {
       if (!location) return;
       const queries = selectedFoods
-        .map(slug => categories.find(c => c.eng_keyword === slug)?.kor_name || slug)
-        .join(",");
+      .map(slug => {
+        const matched = categories.find(c => c.eng_keyword === slug);
+        return matched?.kor_name || slug.replace(/-/g, " ");
+      })
+      .join(",");
       const params = new URLSearchParams({
         keywords: queries,
         lat: location.lat.toString(),
