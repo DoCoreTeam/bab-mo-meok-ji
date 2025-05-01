@@ -243,7 +243,8 @@ useEffect(() => {
       return;
     }
     const disliked = aiFoods[0];
-    const slug = disliked.toLowerCase().replace(/\s+/g, "-");
+    const slug = disliked.toLowerCase().replace(/\s+/g, "-").trim();;
+    //onst slug = food.toLowerCase().replace(/\s+/g, "-").trim();
     saveDislikedFood(slug);
 
     setStep("loading");
