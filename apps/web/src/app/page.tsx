@@ -187,29 +187,29 @@ export default function Home() {
 
   // DOCORE: 2025-04-21 01:00 aiReady 시 자동으로 AI 추천 호출
   // AI 추천 로직 useEffect 수정
-useEffect(() => {
-  async function fetchAiRecommendation() {
-    const aiResult = await fetchAdditionalRecommendations(selectedFoods);
-    const allDisliked = getAllDislikedFoods();
-
-    const filtered = aiResult.filter(food => {
-      const slug = food.toLowerCase().replace(/\s+/g, "-");
-      return !allDisliked.includes(slug);
-    });
-
-    if (filtered.length === 0) {
-      setStep("finished");
-      return;
+  useEffect(() => {
+    async function fetchAiRecommendation() {
+      const allDisliked = getAllDislikedFoods(); // ⬅️ 추가된 부분
+      const aiResult = await fetchAdditionalRecommendations(selectedFoods, allDisliked); // ⬅️ 인수 2개 전달
+  
+      const filtered = aiResult.filter(food => {
+        const slug = food.toLowerCase().replace(/\s+/g, "-");
+        return !allDisliked.includes(slug);
+      });
+  
+      if (filtered.length === 0) {
+        setStep("finished");
+        return;
+      }
+  
+      setAiFoods(filtered.slice(0, 1));
+      setStep("aiReview");
     }
-
-    setAiFoods(filtered.slice(0, 1));
-    setStep("aiReview");
-  }
-
-  if (step === "aiReady") {
-    fetchAiRecommendation();
-  }
-}, [step, selectedFoods]);
+  
+    if (step === "aiReady") {
+      fetchAiRecommendation();
+    }
+  }, [step, selectedFoods]);
 
 // DOCORE: 2025-04-21 01:40 싫어요 음식 전체 목록 가져오기 함수 추가
   function getAllDislikedFoods(): string[] {
@@ -248,7 +248,8 @@ useEffect(() => {
     saveDislikedFood(slug);
 
     setStep("loading");
-    const newAiFoods = await fetchAdditionalRecommendations(selectedFoods);
+    const allDisliked = getAllDislikedFoods(); // Retrieve disliked foods
+    const newAiFoods = await fetchAdditionalRecommendations(selectedFoods, allDisliked);
     setAiFoods(newAiFoods.slice(0, 1));
     setStep("aiReview");
   };
