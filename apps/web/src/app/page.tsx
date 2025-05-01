@@ -15,6 +15,8 @@ import { supabase } from "@/lib/supabaseClient";
 import { fetchAdditionalRecommendations } from "@/lib/openai";
 import { useDislikeManager } from "@/app/hooks/useDislikeManager";
 import OpenInBrowserButtons from "@/app/components/OpenInBrowserButtons";
+import { getWeatherSensitiveFilters, useWeather } from "@/app/hooks/weatherFetcher";
+
 
 
 // 타입 정의
@@ -75,6 +77,10 @@ export default function Home() {
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
   const [usedPlaces, setUsedPlaces] = useState<Place[]>([]);
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
+  // 날씨 정보 가져오기
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { weather, loading: weatherLoading } = useWeather(location?.lat ?? 0, location?.lng ?? 0);
+
 
   const { saveDislikedFood } = useDislikeManager();
 
@@ -103,10 +109,16 @@ export default function Home() {
     if (data) {
       const mealType = getCurrentMealType();
       let filtered = data.filter(cat => cat.type === mealType);
+  
       if (filtered.length === 0) {
         console.warn(`[경고] ${mealType} 타입 음식 부족`);
         filtered = data;
       }
+  
+      // ✅ [추가] 날씨 기반 비선호 필터링
+      const weatherFilters = getWeatherSensitiveFilters(weather);
+      filtered = filtered.filter(cat => !weatherFilters.includes(cat.kor_name));
+  
       const shuffle = <T,>(arr: T[]): T[] => {
         const a = [...arr];
         for (let i = a.length - 1; i > 0; i--) {
@@ -115,6 +127,7 @@ export default function Home() {
         }
         return a;
       };
+  
       setCategories(shuffle(filtered).slice(0, 10));
     }
   };
@@ -123,6 +136,7 @@ export default function Home() {
     if (step === "select") {
       loadCategories();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step]);
 
   useEffect(() => {
