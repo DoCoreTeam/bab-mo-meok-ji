@@ -80,6 +80,8 @@ export default function Home() {
   // 날씨 정보 가져오기
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { weather, loading: weatherLoading } = useWeather(location?.lat ?? 0, location?.lng ?? 0);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [categoryLoading, setCategoryLoading] = useState(false);
 
 
   const { saveDislikedFood } = useDislikeManager();
@@ -105,7 +107,9 @@ export default function Home() {
   }, []);
 
   const loadCategories = async () => {
-    const mealType = getCurrentMealType();
+    setCategoryLoading(true); // 시작
+    try{
+      const mealType = getCurrentMealType();
   
     const aiSuggestions = await fetchInitialCategoryJsonSuggestions({
       mealType,
@@ -129,6 +133,11 @@ export default function Home() {
     };
   
     setCategories(shuffle(filtered).slice(0, 10));
+
+    } finally {
+      setCategoryLoading(false); // 종료
+    }
+    
   };
 
   useEffect(() => {
@@ -295,6 +304,7 @@ export default function Home() {
       {showSplash ? (
         <SplashScreen progress={progress} />
       ) : step === "select" ? (
+        
         <SelectFavoriteFoods
           categories={categories}
           selectedFoods={selectedFoods}
