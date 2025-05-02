@@ -21,6 +21,15 @@ export default function SelectFavoriteFoods({
   onRefresh, // ✨ 추가
   typeLabel,
 }: SelectFavoriteFoodsProps) {
+  if (categories.length === 0) {
+    return (
+      <div className="w-full max-w-md mx-auto bg-white p-6 rounded-lg shadow-md text-center">
+        <p className="text-lg font-semibold mb-4">{typeLabel}</p>
+        <p className="text-gray-600 animate-pulse">AI가 음식 카테고리를 추천하고 있어요...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full max-w-md mx-auto bg-white p-6 rounded-lg shadow-md">
       <p className="text-center mb-2 text-lg font-semibold">{typeLabel}</p>
