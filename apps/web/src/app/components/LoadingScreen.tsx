@@ -14,7 +14,7 @@ export default function LoadingScreen() {
     // </div>
     <div className="w-full h-screen flex flex-col items-center justify-center bg-white text-black space-y-4">
     <div className="w-12 h-12 border-4 border-gray-300 border-t-indigo-500 rounded-full animate-spin" />
-    <p className="text-gray-600 text-sm">당신이 고른 메뉴의 가게를 확인하고 있어요...</p>
+    <p className="text-gray-600 text-sm">잠시만요 확인하고 있어요...</p>
   </div>
     
   );
